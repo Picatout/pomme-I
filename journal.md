@@ -1,3 +1,7 @@
+### 2023-07-12
+
+* Révision des routines *let_string* et *get_string_slice*. 
+
 ### 2023-07-11 
 
 * Corrigé bogue dans routine *get_string_slice*. Lors d'une affectation à une chaîne si l'indice dépasse la longueur de la chaîne de 1 cette 

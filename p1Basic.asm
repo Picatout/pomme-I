@@ -1042,7 +1042,8 @@ let_int_var:
 	TEMP=1 ; temporary storage 
 	DEST_SIZE=TEMP+2 
 	DEST_ADR=DEST_SIZE+2  
-	SRC_ADR=DEST_ADR+2 
+	DEST_LEN=DEST_ADR+2 
+	SRC_ADR=DEST_LEN+2 
 	SIZE=SRC_ADR+2 
 	VSIZE2=SIZE+1
 let_string:
@@ -1051,22 +1052,34 @@ let_string2:
 	_vars VSIZE2 
 	clr (SIZE,sp)
 	clr (DEST_SIZE,sp)
+	clr (DEST_LEN,sp)
 	call get_var_adr 
 	ldw (TEMP,sp),x 
 	ldw x,(2,x)
-	ld a,(x)
+	ld a,(x) ; DIM size 
 	incw x 
 	ldw (DEST_ADR,sp),x 
 	ld (DEST_SIZE+1,sp),a 
-	ldw x,(TEMP,sp) ; var address 
-	call get_string_slice 
-	ldw (TEMP,sp),x ; slice address 
-	subw x,(DEST_ADR,sp) ; count character skipped 
-	subw x,(DEST_SIZE,sp)
-	negw x  
-	ldw (DEST_SIZE,sp),x ; space left in array 
-	ldw x,(TEMP,sp)
-	ldw (DEST_ADR,sp),x 
+	call strlen
+	inc a  
+	ld (DEST_LEN+1,sp),a 
+	ld a,(y)
+	cp a,#LPAREN_IDX 
+	jrne 3$ 
+	call expression 
+	cpw x,(DEST_LEN,sp)
+	jrule 2$
+	ld a,#ERR_STR_OVFL
+	jp tb_error 
+2$:  
+	decw x 
+	ldw (TEMP,sp),x 
+	addw x,(DEST_ADR,sp)
+	ldw (DEST_ADR,sp),x
+3$: ; space left in string space 
+	ldw x,(DEST_SIZE,sp)
+	subw x,(TEMP,sp)
+	ldw (DEST_SIZE,sp),x 
 	ld a,#REL_EQU_IDX 
 	call expect 
 	ld a,(y)
@@ -1158,14 +1171,7 @@ get_string_slice:
 0$:	ld a,#ERR_STR_OVFL 
 	jp tb_error 
 2$:	cpw x,(VAL2,sp)
-	jrule 22$
-	_strxz acc16 
-	subw x,(VAL2,sp)
-	cpw x,#1 
-	jrugt 0$ 
-	_ldxz acc16 
-	ldw (VAL2,sp),x 
-22$:
+	jrugt 0$
 	ldw (VAL1,sp),x 
 	ld a,(y)
 	cp a,#RPAREN_IDX 

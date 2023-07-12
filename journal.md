@@ -1,5 +1,16 @@
 ### 2023-07-11 
 
+* Corrigé bogue dans routine *set_seed* du  fichier [p1Kernel.asm](p1Kernel.asm). 
+ 
+* Travail sur [files.asm](files.asm). Ajout des commandes  
+    * "SAVE "file name" 
+    * "LOAD "file name" 
+    * "ERASE "file name" || \F 
+    * "DIR" 
+
+Les fichiers sont sauvegardés dans la mémoire SPI EEPROM 25LC1024 de 128KO. La taille de l'unité d'allocation des fichiers étant de 256 octets un maximum de 512 fichiers peuvent-être sauvegardés et un minimum de 21 à supposé que chacun de ses programme occupe toute la mémoire RAM disponible (5504 octests),
+
+
 * Corrigé bogue dans *and_factor*. 
 
 * Ajout de la fonction **KEY**.

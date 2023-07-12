@@ -4034,6 +4034,7 @@ dict_end:
 	_dict_entry,4,"SAVE",SAVE_IDX 
 	_dict_entry 3,"RUN",RUN_IDX
 	_dict_entry,3,"RND",RND_IDX
+	_dict_entry,9,"RANDOMIZE",RNDMIZE_IDX 
 	_dict_entry,6,"RETURN",RET_IDX
 	_dict_entry 3,"REM",REM_IDX
 	_dict_entry 5,"PRINT",PRINT_IDX 

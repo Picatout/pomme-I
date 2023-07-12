@@ -126,4 +126,5 @@ code_addr:
     _code_entry cmd_load,LOAD_IDX 
     _code_entry cmd_dir, DIR_IDX 
     _code_entry cmd_erase, ERASE_IDX 
+    _code_entry cmd_randomize, RNDMIZE_IDX
     CMD_LAST=TOK_IDX-1

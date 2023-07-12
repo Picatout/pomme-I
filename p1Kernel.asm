@@ -366,7 +366,7 @@ set_seed:
     ldw x,tib 
     _strxz seedy  
     ret 
-1$: ldw x,ticks 
+1$:  
     _strxz seedx
     ldw x,0x6000
     _strxz seedy  

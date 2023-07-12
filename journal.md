@@ -1,5 +1,10 @@
 ### 2023-07-11 
 
+* Corrigé bogue dans routine *get_string_slice*. Lors d'une affectation à une chaîne si l'indice dépasse la longueur de la chaîne de 1 cette 
+valeur doit-être acceptée pour effectuer une concaténation.
+
+* Modification au readme.md 
+
 * Corrigé bogue dans routine *set_seed* du  fichier [p1Kernel.asm](p1Kernel.asm). 
  
 * Travail sur [files.asm](files.asm). Ajout des commandes  

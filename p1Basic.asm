@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	MAJOR=1
 	MINOR=0
-	REV=0
+	REV=1
 		
 copyright_info: .asciz "\npomme BASIC\nCopyright, Jacques Deschenes 2023\nversion "
 
@@ -1158,7 +1158,14 @@ get_string_slice:
 0$:	ld a,#ERR_STR_OVFL 
 	jp tb_error 
 2$:	cpw x,(VAL2,sp)
+	jrule 22$
+	_strxz acc16 
+	subw x,(VAL2,sp)
+	cpw x,#1 
 	jrugt 0$ 
+	_ldxz acc16 
+	ldw (VAL2,sp),x 
+22$:
 	ldw (VAL1,sp),x 
 	ld a,(y)
 	cp a,#RPAREN_IDX 

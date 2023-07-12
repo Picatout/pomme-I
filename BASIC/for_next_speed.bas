@@ -1,0 +1,7 @@
+NEW 
+1 ' FOR..NEXT speed test 
+10 T=TICKS 
+20 FOR I=1 TO 10000
+30 NEXT I 
+40 ? TICKS-T 
+50 END 

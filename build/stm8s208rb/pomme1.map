@@ -1,0 +1,120 @@
+ASxxxx Linker V03.00 + NoICE + sdld,  page 1.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+.  .ABS.                            00000000    00000000 =           0. bytes (ABS,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+     FFFFFFFF  s_SSEG                          
+     00000000  .__.ABS.                           POMME1
+     00000000  IBASIC                             POMME1
+     00000000  l_CODE                          
+     00000000  l_DATA                          
+     00000000  l_SSEG                          
+     00000000  l__CODE                         
+     00000000  s_BASIC                         
+     00000000  s_CODE                          
+     00000000  s_CODE3                         
+     00000000  s_DATA1                         
+     00000000  s_DATA2                         
+     00000000  s_SSEG0                         
+     00000000  s__CODE                         
+     00000001  PUTC                               POMME1
+     00000001  s_DATA                          
+     00000002  GETC                               POMME1
+     00000003  QCHAR                              POMME1
+     00000004  CLS                                POMME1
+     00000008  l_HOME                          
+     00000010  l_DATA1                         
+     00000015  l_BASIC                         
+     00000080  PAD_SIZE                           POMME1
+     00000080  TIB_SIZE                           POMME1
+     00000100  STACK_SIZE                         POMME1
+     00000100  l_DATA2                         
+     00000100  l_SSEG0                         
+     00000309  l_CODE3                         
+     00008000  s_HOME                          
+
+ASxxxx Linker V03.00 + NoICE + sdld,  page 2.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+SSEG0                               00000000    00000100 =         256. bytes (ABS,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+ASxxxx Linker V03.00 + NoICE + sdld,  page 3.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+DATA1                               00000000    00000010 =          16. bytes (ABS,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+ASxxxx Linker V03.00 + NoICE + sdld,  page 4.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+BASIC                               00000000    00000015 =          21. bytes (ABS,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+ASxxxx Linker V03.00 + NoICE + sdld,  page 5.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+DATA2                               00000000    00000100 =         256. bytes (ABS,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+ASxxxx Linker V03.00 + NoICE + sdld,  page 6.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+HOME                                00008000    00000008 =           8. bytes (REL,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+ASxxxx Linker V03.00 + NoICE + sdld,  page 7.
+Hexadecimal  [32-Bits]
+
+Area                                    Addr        Size        Decimal Bytes (Attributes)
+--------------------------------        ----        ----        ------- ----- ------------
+CODE3                               00000000    00000309 =         777. bytes (ABS,CON)
+
+      Value  Global                              Global Defined In Module
+      -----  --------------------------------   ------------------------
+     00008020  TrapHandler                        POMME1
+     00008084  putchar                            POMME1
+     00008095  getchar                            POMME1
+     000080AD  querychar                          POMME1
+     000080B5  clr_screen                         POMME1
+     000080C9  delback                            POMME1
+     000080DD  getline                            POMME1
+     00008136  puts                               POMME1
+     00008140  tabout                             POMME1
+     00008163  WOZMON                             POMME1
+     00008262  BASIC                              POMME1
+
+ASxxxx Linker V03.00 + NoICE + sdld,  page 8.
+
+Files Linked                              [ module(s) ]
+
+build/stm8s208rb/pomme1.rel               [ POMME1 ]
+
+ASxxxx Linker V03.00 + NoICE + sdld,  page 9.
+
+User Base Address Definitions
+
+HOME = 0x8000
+DATA = 0x0001
+SSEG = 0xffffffff
+
+

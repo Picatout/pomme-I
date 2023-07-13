@@ -9,10 +9,10 @@ OBJCPY=objcpy
 CFLAGS=-mstm8 -lstm8 -L$(LIB_PATH) -I../inc
 INC=../inc/
 INCLUDES=$(BOARD_INC) $(INC)ascii.inc $(INC)gen_macros.inc cmd_idx.inc\
-         app_macros.inc arithm16_macros.inc dbg_macros.inc 
+         app_macros.inc arithm16_macros.inc 
 BUILD=build/
 KERNEL=hardware_init.asm p1Kernel.asm arithm16.asm terminal.asm std_func.asm spi.asm 
-MONITOR=p1Monitor.asm
+MONITOR=p1Monitor.asm  
 BASIC=code_address.asm compiler.asm decompiler.asm files.asm error.asm p1Basic.asm 
 SRC=$(KERNEL) $(MONITOR) $(BASIC) 
 OBJECT=$(BUILD)$(BOARD)/$(NAME).rel

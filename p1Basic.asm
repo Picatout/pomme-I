@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	MAJOR=1
 	MINOR=0
-	REV=2
+	REV=3
 		
 copyright_info: .asciz "\npomme BASIC\nCopyright, Jacques Deschenes 2023\nversion "
 

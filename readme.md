@@ -18,6 +18,15 @@ Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour
 
 L'intégration du [STM8_terminal](https://github.com/Picatout/stm8_terminal) avec l'ordinateur **POMME-I** a nécessité des modifications aux 2 projets. Durant certaines opérations du terminal ce dernier perdait des caractères envoyés par l'ordinateur. Le problème a été corrigé par l'ajout d'un contrôle de flux matériel appellé **DTR** *(Data Terminal Ready)*. L'ordinateur n'envoie des caractères au terminal que lorsque ce signal est à **0** volt.
 
+### Modification aux cartes NUCLEO-8S207K8 
+
+Il y a sur les cartes NUCLEO-8S207K8 des *solder bridge* . Certains sont ouverts d'autre sont fermés avec des résistances de 0 ohm. Il faut en ouvrir certains et en fermer d'autres pour que les 2 cartes communiquent en utilisant leur UART respectif. Normalement le UART est branché au programmeur ST-LINK-V2 qui sur la face inférieur de la carte.
+
+1.  Dessoudez les résistances sur **SB3** et **SB4**
+1.  Fermez **SB7** et **SB9**. Pour ce faire vous pouvez utilisez les résistances enlevées à l'étape 1 ou simplement faire un pont avec de l'étain comme j'ai fait. 
+1.  Si **SB5** est fermé il faut l'ouvrir sur la carte du terminal car celle-ci utilise un crystal externe. Car le pont **SB5** amène le singal **CCO** de 8Mhz en provenance du ST-LINK vers **OSCIN** ce qui entre en conflit avec l'installation du crystal.
+
+
 ### Montage sur carte de prototypage
 
 L'ordinateur et le terminal sont montés sur la même carte de 63 colonnes. Notez que les **OPTION SWITCHES** ne sont pas utilisées dans cette application du terminal. Mais un *jumper* doit-être installé entre les broches **D2** et **GND** du terminal. Ce *jumper*  est fournie et installé à l'achat de la carte. Ce *jumper* annulle l'option écho local. Sans lui les caractères saisis au clavier du terminal apparaîssent en double a l'écran. 

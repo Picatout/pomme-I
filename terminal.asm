@@ -51,6 +51,7 @@ ANSI=0
 
 RX_QUEUE_SIZE==8 ; UART receive queue size 
 
+DTR=0 ; pin D2 received DTR signal from terminaal 
 ;--------------------------------------
 	.area DATA
 	.org SYS_VARS_ORG+SYS_VARS_SIZE+ARITHM_VARS_SIZE 
@@ -117,7 +118,7 @@ UartRxHandler: ; console receive char
 ; output:
 ;   none
 ;---------------------------------------------
-BAUD_RATE=38400
+BAUD_RATE=115200
 	N1=1
 	N2=N1+INT_SIZE 
 	VSIZE=N2+2
@@ -218,7 +219,7 @@ buf_putc:
 ;    A  	character to send
 ;---------------------------------
 uart_putc:: 
-	btjt PD_IDR,#0,. ; wait for DTR==0
+	btjt PD_IDR,#DTR,. ; wait for DTR==0
 	btjf UART_SR,#UART_SR_TXE,.
 	ld UART_DR,a 
 	ret 
@@ -922,8 +923,6 @@ readln:
 	jruge 4$
 	cp a,#CR 
 	jreq 9$ 
-	cp a,#SPACE 
-	jreq 4$  ; accepted 
 	cp a,#BS 
 	jrne 2$ 
 	tnz (LN_LEN,sp)
@@ -936,11 +935,11 @@ readln:
 2$: cp a,#ESC 
 	jrne 1$ 
 	call uart_getc 
-	cp a,#'c 
+	cp a,#'C  
 	jrne 1$ 
 	call clr_screen
 	clr (LN_LEN,sp)
-	jra 9$ 
+	jra 10$ 
 4$: call uart_putc 
 	ld (x),a 
 	incw x 
@@ -948,6 +947,7 @@ readln:
 	inc (LN_LEN,sp)
 	jra 1$ 
 9$:	call uart_putc  
+10$: 
 	ldw x,#tib 
 	pop a 
 	ret 

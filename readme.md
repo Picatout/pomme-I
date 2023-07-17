@@ -14,6 +14,16 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
 
+## 2023-07-17 
+
+L'intégration du [STM8_terminal](https://github.com/Picatout/stm8_terminal) avec l'ordinateur **POMME-I** a nécessité des modifications aux 2 projets. Durant certaines opérations du terminal ce dernier perdait des caractères envoyés par l'ordinateur. Le problème a été corrigé par l'ajout d'un contrôle de flux matériel appellé **DTR** *(Data Terminal Ready)*. L'ordinateur n'envoie des caractères au terminal que lorsque ce signal est à **0** volt.
+
+### Montage sur carte de prototypage
+
+L'ordinateur et le terminal sont montés sur la même carte de 63 colonnes. Notez que les **OPTION SWITCHES** ne sont pas utilisées dans cette application du terminal. Mais un *jumper* doit-être installé entre les broches **D2** et **GND** du terminal. Ce *jumper*  est fournie et installé à l'achat de la carte. Ce *jumper* annulle l'option écho local. Sans lui les caractères saisis au clavier du terminal apparaîssent en double a l'écran. 
+
+![pomme-I-board-assembly.png](docs/pomme-I-board-assembly.png)
+
 ## 2023-07-11
 
 La version 1.0 de POMME BASIC est maintenant complétée. Elle comprend 50 mots réservés.

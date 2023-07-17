@@ -31,6 +31,8 @@
 
 SEPARATE=0 
 
+ANSI=0
+
 .if SEPARATE 
     .module TERMINAL  
     .include "config.inc"
@@ -115,7 +117,7 @@ UartRxHandler: ; console receive char
 ; output:
 ;   none
 ;---------------------------------------------
-BAUD_RATE=115200 
+BAUD_RATE=38400
 	N1=1
 	N2=N1+INT_SIZE 
 	VSIZE=N2+2
@@ -216,6 +218,7 @@ buf_putc:
 ;    A  	character to send
 ;---------------------------------
 uart_putc:: 
+	btjt PD_IDR,#0,. ; wait for DTR==0
 	btjf UART_SR,#UART_SR_TXE,.
 	ld UART_DR,a 
 	ret 
@@ -265,6 +268,7 @@ uart_getc::
 	popw x
 	ret 
 
+.if ANSI 
 ;-----------------------------
 ;  constants replacing 
 ;  ANSI sequence received 
@@ -316,7 +320,7 @@ get_escape:
     pop a 
 5$:
     ret 
-
+.endif 
 
 ;-----------------------------
 ; send an ASCIZ string to UART 
@@ -334,6 +338,7 @@ puts::
 1$:	incw x 
 	ret 
 
+.if ANSI 
 ;---------------------------------------------------------------
 ; send ANSI Control Sequence Introducer (CSI) 
 ; ANSI: CSI 
@@ -387,6 +392,20 @@ send_parameter:
 	ret 
 
 ;---------------------------
+; move cursor at column  
+; input:
+;    n    colon 
+;---------------------------
+cursor_column:
+	call send_csi 
+	call send_parameter 
+	ld a,#'G 
+	call putc 
+	ret 
+
+.endif 
+
+;---------------------------
 ; delete character at left 
 ; of cursor on terminal 
 ; input:
@@ -397,11 +416,14 @@ send_parameter:
 bksp:
 	ld a,#BS 
 	call putc 
+.if ANSI 
 	ld a,#SPACE 
 	call putc 
 	ld a,#BS 
 	call putc 
+.endif 
 	ret 
+ 
 
 ;---------------------------
 ; send LF character 
@@ -422,19 +444,6 @@ clr_screen:
 	ld a,#'c 
 	call putc 
 	ret 
-
-;---------------------------
-; move cursor at column  
-; input:
-;    n    colon 
-;---------------------------
-cursor_column:
-	call send_csi 
-	call send_parameter 
-	ld a,#'G 
-	call putc 
-	ret 
-
 
 ;--------------------------
 ; output a single space
@@ -461,7 +470,7 @@ spaces::
 9$: 
 	ret 
 
-
+.if ANSI
 ;-----------------------------
 ; send ANSI sequence to delete
 ; whole display line. 
@@ -573,10 +582,12 @@ insert_char:
 	ld (x),a
 	_drop VSIZE  
 	ret 
+.endif 
 
+.if ANSI 
 ;------------------------------------
 ; read a line of text from terminal
-;  control keys: 
+;  control keys:
 ;    BS   efface caractère à gauche 
 ;    CTRL_R  edit previous line.
 ;    CTRL_D  delete line  
@@ -886,6 +897,61 @@ display_line:
 	ldw x,#tib 
 	call puts 
 	ret 
+
+.else 
+ 
+;--------------------------
+; this version of readln 
+; if to be used with 
+; non ANSI terminal 
+; like STM8_terminal 
+; 
+; input:
+;   none 
+; output:
+;   A     line length 
+;   X     tib address 
+;--------------------------
+	LN_LEN=1
+readln:
+	push #0 
+	ldw x,#tib 
+1$:
+	call uart_getc
+	cp a,#SPACE 
+	jruge 4$
+	cp a,#CR 
+	jreq 9$ 
+	cp a,#SPACE 
+	jreq 4$  ; accepted 
+	cp a,#BS 
+	jrne 2$ 
+	tnz (LN_LEN,sp)
+	jreq 1$ 
+	call uart_putc 
+	decw x 
+	clr (x)
+	dec (LN_LEN,sp)
+	jra 1$ 
+2$: cp a,#ESC 
+	jrne 1$ 
+	call uart_getc 
+	cp a,#'c 
+	jrne 1$ 
+	call clr_screen
+	clr (LN_LEN,sp)
+	jra 9$ 
+4$: call uart_putc 
+	ld (x),a 
+	incw x 
+	clr (x)
+	inc (LN_LEN,sp)
+	jra 1$ 
+9$:	call uart_putc  
+	ldw x,#tib 
+	pop a 
+	ret 
+.endif 
 
 ;----------------------------------
 ; convert to hexadecimal digit 

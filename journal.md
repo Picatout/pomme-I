@@ -1,3 +1,9 @@
+### 2023-07-17
+
+* Modification au fichier [terminal.asm](terminal.asm) pour que POMME-I puisse fonctionner avec [STM8_terminal] qui ne reconnaît pas les séquence de contrôle ANSI. 
+    * Réduire la vitesse du UART à 38400 BAUD 
+    * Écriture d'une version simplifiée de la routine **readln**.
+
 ### 2023-07-12
 
 * Révision des routines *let_string* et *get_string_slice*. 

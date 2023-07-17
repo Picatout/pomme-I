@@ -26,6 +26,9 @@ Il y a sur les cartes NUCLEO-8S207K8 des *solder bridge* . Certains sont ouverts
 1.  Fermez **SB7** et **SB9**. Pour ce faire vous pouvez utilisez les résistances enlevées à l'étape 1 ou simplement faire un pont avec de l'étain comme j'ai fait. 
 1.  Si **SB5** est fermé il faut l'ouvrir sur la carte du terminal car celle-ci utilise un crystal externe. Car le pont **SB5** amène le singal **CCO** de 8Mhz en provenance du ST-LINK vers **OSCIN** ce qui entre en conflit avec l'installation du crystal.
 
+### NOTE
+
+La mémoire RAM 23LC1024 n'est pas utilisée dans cette première version du POMME-I mais elle doit néanmoins être installée pour que l'ordinateur réussisse son initialisation.
 
 ### Montage sur carte de prototypage
 

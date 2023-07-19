@@ -13,6 +13,27 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2023-07-19 
+
+Le POMME I  est maintenant complété et installlé dans son boitier. 
+
+ ![intérieur boitier](docs/pomme-I_intérieur-boitier.jpg)
+
+Vue panneau arrière, une sortie 120VAC permet de brancher directement l'adapteur qui alimente le moniteur LCD. Cette sortie est commutée par le commutateur principal donc le moniteur s'allume et s'éteint avec l'ordinateur. 
+
+Les commutateurs **ECHO** et **BAUD** ne sont pas utililisés dans cette application car l'ordaniteur POMME I  est préconfiguré à 115200 BAUD et sans écho locale.
+
+![panneau arrière](docs/pomme-I_vue-arrière-sans-couvert.jpg)
+
+Vue avant avec le mini clavier MCSaite. Ce clavier a été choisie pour sa petite taille et parce qu'il supporte aussi le protocole PS/2 en plus du protocole USB. 
+
+![au démarrage](docs/pomme-I-éteint.jpg)
+
+À l'allumage c'est l'application **POMME MONITOR** qui est active. Il s'agit d'un clone du WOZMON. Pour aller dans le **POMME BASIC** il faut faire **CTRL+B**. Sur cette photo on voie l'affichage de la commande  **WORDS** qui affiche les 50 mots réservés du BASIC. Le **POMME BASIC** est compatible avec le Apple I BASIC au niveau du code source mais comprends plus de commandes et fonctions. Les commandes **DIR**, **LOAD**, **SAVE** et **ERASE** permettent d'accéder les programmes sauvegardés dans une mémoire EEPROM externe au MCU.
+
+![POMME BASIC](docs/pomme-I_cmd_WORDS.jpg)
+
+La combinaison de touche **CTRL_X** permet de réinitialiser l'ordinateur. 
 
 ## 2023-07-17 
 

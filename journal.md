@@ -1,3 +1,10 @@
+### 2023-07-19
+
+* Assemblage du POMME I dans son boitier complété. 
+
+![assemblage dans boitier](docs/pomme-I_intérieur-boitier.jpg)
+
+
 ### 2023-07-17
 
 * Modification au fichier [terminal.asm](terminal.asm) pour que POMME-I puisse fonctionner avec [STM8_terminal] qui ne reconnaît pas les séquence de contrôle ANSI. 

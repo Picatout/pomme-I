@@ -1,5 +1,7 @@
 ### 2023-07-19
 
+* Corrigé bogue dans la commande **RUN** qui ne vérifiait pas s'il y avait un programme en mémoire avant de lancer l'exécution.
+
 * Assemblage du POMME I dans son boitier complété. 
 
 ![assemblage dans boitier](docs/pomme-I_intérieur-boitier.jpg)

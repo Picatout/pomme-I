@@ -2674,6 +2674,9 @@ cmd_run:
 	btjf flags,#FRUN,1$  
 	_next ; already running 
 1$: 
+	ldw x,progend 
+	cpw x,lomem 
+	jreq 9$
 	call clear_state 
 	ldw x,#STACK_EMPTY
 	ldw sp,x 
@@ -2694,6 +2697,7 @@ cmd_run:
 	addw x,#LINE_HEADER_SIZE
 	ldw y,x 
 	bset flags,#FRUN 
+9$:
 	_next 
 
 

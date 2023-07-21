@@ -1,3 +1,23 @@
+### 2023-07-20 
+
+* Corrigé bogue dans routine *search_free*. 
+
+* Bogue de la commande **AUTO** réparé.
+
+* Ajout de la commande **CTRL_D** à la routine *readln* pour désactiver la commande **AUTO**.
+
+* Corrigé bogue dans routine *next_file*, comparaison avec la signature **ERASED** était erronnée.
+
+* Corrigé bogue dans routine *basic_load_file*. Ne testait pas la valeur de A avant de faire **jrne**. 
+
+* Corrigé bogue dans [files.asm](files.asm)  la constante ERASED était mal définie.
+
+* Ajout de la commande BASIC **CLS** pour envoyer une commande d'effacement d'écran au terminal.
+
+* Corrigé bogue dans la fonction **SGN** 
+
+* Ajouter l'option "fichier" à la commande **RUN** pour charger et exécuter un programme en une seule commande.
+
 ### 2023-07-19
 
 * Corrigé bogue dans la commande **RUN** qui ne vérifiait pas s'il y avait un programme en mémoire avant de lancer l'exécution.

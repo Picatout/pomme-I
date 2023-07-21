@@ -915,12 +915,16 @@ display_line:
 ;--------------------------
 	LN_LEN=1
 readln:
-	push #0 
+	push a 
 	ldw x,#tib 
+	tnz a  
+	jreq 1$ 
+	call puts 
+	decw x 
 1$:
 	call uart_getc
 	cp a,#SPACE 
-	jruge 4$
+	jruge 8$
 	cp a,#CR 
 	jreq 9$ 
 	cp a,#BS 
@@ -938,10 +942,17 @@ readln:
 	tnz (LN_LEN,sp)
 	jrne 1$ 
 	call strlen 
-	ld (LN_lEN,sp),a
-	decw x 
+	ld (LN_LEN,sp),a
+	call puts  
+	decw x
 	jra 1$ 
 3$:
+	cp a,#CTRL_D 
+	jrne 4$
+	bres flags,#FAUTO 
+	ld a,#CR 
+	jra 9$
+4$:	
 	cp a,#ESC 
 	jrne 1$ 
 	call uart_getc 
@@ -950,7 +961,7 @@ readln:
 	call clr_screen
 	clr (LN_LEN,sp)
 	jra 10$ 
-4$: call uart_putc 
+8$: call uart_putc 
 	ld (x),a 
 	incw x 
 	clr (x)

@@ -44,7 +44,7 @@
 
 
 SIGNATURE="PB" 
-ERASED: .ascii "XX" ; erased file, replace signature. 
+ERASED="XX" ; erased file, replace signature. 
 FILE_SIGN_FIELD = 0 ; signature offset 2 bytes 
 FILE_SIZE_FIELD = 2 ; size offset 2 bytes 
 FILE_NAME_FIELD = 4 ; file name 12 byte 
@@ -81,7 +81,8 @@ search_file:
 	ldw x,#file_header 
 	call skip_to_next
 	call next_file 
-	jra 1$  
+	jreq 7$
+	jra 1$   
 4$: ; file found  
 	ld a,#1 
 	jra 8$  
@@ -276,9 +277,9 @@ search_free:
 	jreq 4$ 
 	ldw x,#ERASED
 	cpw x,acc16  
-	jreq 4$ 
-	jra 6$ ; no "PB" or "XX" take it 
+	jrne 6$ ; no "PB" or "XX" take it 
 4$: ; try next 
+	ldw x,#file_header 
 	call skip_to_next 
 	call addr_to_page 
 	cpw x,#512 
@@ -323,7 +324,8 @@ next_file:
 	ldw x,#-1 
 	cpw x,acc16 
 	jreq 4$ ; end of files 	
-	cpw x,#ERASED 
+	ldw x,#ERASED 
+	cpw x,acc16 
 	jrne 4$ 
 2$:
 	ldw x,#file_header 

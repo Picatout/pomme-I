@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	MAJOR=1
 	MINOR=0
-	REV=3
+	REV=4
 		
 copyright_info: .asciz "\npomme BASIC\nCopyright, Jacques Deschenes 2023\nversion "
 
@@ -223,7 +223,6 @@ cmd_line: ; user interface
 	ld a,#'> 
 	call putc
 	push #0 
-;	clr tib
 	btjf flags,#FAUTO,1$ 
 	_ldxz auto_line 
 	call itoa
@@ -2674,6 +2673,9 @@ cmd_run:
 	btjf flags,#FRUN,1$  
 	_next ; already running 
 1$: 
+	ld a,(y)
+	cp a,#QUOTE_IDX
+	jreq 10$
 	ldw x,progend 
 	cpw x,lomem 
 	jreq 9$
@@ -2699,7 +2701,16 @@ cmd_run:
 	bset flags,#FRUN 
 9$:
 	_next 
-
+;------------------------
+; load and run file
+;------------------------
+10$:
+	incw y 
+	call basic_load_file
+	ldw x,progend 
+	cpw x,lomem 
+	jrugt 2$ 
+	_next 
 
 ;----------------------
 ; BASIC: END
@@ -2880,7 +2891,15 @@ cmd_save:
 1$: ldw x,y 
 	call skip_string 
 	pushw x 
+	call search_file 
+	tnz a 
+	jreq 2$
+	ldw x,#file_exist 
+	call puts 
+	jra 9$ 
+2$:
 	call search_free
+	tnz a 
 	jrne 4$ 
 	ldw x,progend 
 	subw x,lomem 
@@ -2902,8 +2921,9 @@ cmd_save:
 	clr (y)
 	_next 
 
-no_prog: .asciz "No program in RAM."
-no_space: .asciz "file system full." 
+file_exist: .asciz "Duplicate name.\n"
+no_prog: .asciz "No program in RAM.\n"
+no_space: .asciz "File system full.\n" 
 
 ;-----------------------
 ;BASIC: LOAD "fname"
@@ -2918,9 +2938,20 @@ cmd_load:
 	jreq 1$ 
 	jp syntax_error
 1$:
+	call basic_load_file 
+	_next  
+
+not_a_file: .asciz "file not found\n"
+
+;--------------------------
+; common factor 
+; for LOAD and RUN "file"
+;-------------------------
+basic_load_file:
 	ldw x,y 
 	call skip_string 
-	call search_file 
+	call search_file
+	tnz a 
 	jrne 2$ ; file found   
 	ldw x,#not_a_file 
 	call puts 
@@ -2930,9 +2961,8 @@ cmd_load:
 	call load_file
 9$: 
 	clr (y)
-	_next  
+	ret 
 
-not_a_file: .asciz "file not found\n"
 
 
 ;---------------------
@@ -2949,6 +2979,7 @@ cmd_dir:
 	push #0 
 	call first_file 
 1$:	 
+	tnz a 
 	jreq 9$ 
 	ldw x,(FCNT,sp)
 	incw x 
@@ -3846,10 +3877,12 @@ cmd_call::
 ;-----------------------------
 cmd_auto:
 	btjt flags,#FRUN,9$ 
-	call arg_list 
 	ldw x,#10 
+	_strxz auto_step 
+	_strxz auto_line 
+	call arg_list 
 	tnz a 
-	jreq 9$ 
+	jreq 8$ 
 	cp a,#1
 	jreq 1$
 	cp a,#2
@@ -3857,10 +3890,11 @@ cmd_auto:
 	jp syntax_error 
 0$: 
 	_i16_pop 
-1$:	
 	_strxz auto_step 
+1$:	
 	 _i16_pop 
 	_strxz auto_line
+8$:
 	bset flags,#FAUTO
 9$: 
 	_next 

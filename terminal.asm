@@ -932,7 +932,17 @@ readln:
 	clr (x)
 	dec (LN_LEN,sp)
 	jra 1$ 
-2$: cp a,#ESC 
+2$: 
+	cp a,#CTRL_R 
+	jrne 3$
+	tnz (LN_LEN,sp)
+	jrne 1$ 
+	call strlen 
+	ld (LN_lEN,sp),a
+	decw x 
+	jra 1$ 
+3$:
+	cp a,#ESC 
 	jrne 1$ 
 	call uart_getc 
 	cp a,#'C  

@@ -3338,12 +3338,12 @@ func_sign:
 	jp syntax_error
 0$:
 	_i16_pop  
+	tnzw x 
 	jreq 9$
 	jrmi 4$
 	ldw x,#1
 	ret
-4$: ldw x,#-1 
-call print_int   
+4$: ldw x,#-1    
 9$:	ret 
 
 ;-----------------------------
@@ -4017,6 +4017,15 @@ free:
 	ret 
 bytes_free: .asciz "bytes free" 
 
+;-----------------------------
+; BASIC: CLS 
+; send clear screen command 
+; to terminal 
+;-----------------------------
+cmd_cls:
+	call clr_screen 
+	_next 
+
 ;------------------------------
 ;      dictionary 
 ; format:
@@ -4080,6 +4089,7 @@ dict_end:
 	_dict_entry,3,"DIM",DIM_IDX 
 	_dict_entry,3,"DEL",DEL_IDX 
 	_dict_entry,3,"CON",CON_IDX 
+	_dict_entry,3,"CLS",CLS_IDX 
 	_dict_entry,3,"CLR",CLR_IDX 
 	_dict_entry,4,"CHR$",CHAR_IDX  
 	_dict_entry,4,"CALL",CALL_IDX

@@ -55,7 +55,7 @@ STOR=':
 
 ; Modeled on Apple I monitor Written by Steve Wozniak 
 
-mon_str: .asciz "pomme I monitor" 
+mon_str: .asciz "pomme I monitor\Copyright, Jacques Deschenes 2023" 
 
 GO_BASIC: 
     jp P1BASIC 

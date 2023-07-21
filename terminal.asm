@@ -204,11 +204,18 @@ putc:
 ;    A     character to save 
 ;---------------------------------
 buf_putc:
-	ld [ptr16],a
-	_incz ptr8 
-	jrne 9$
-	_incz ptr16 
-9$:	clr [ptr16] 
+	pushw x 
+	_ldxz ptr16 
+	cp a,#BS 
+	jrne 1$
+	decw x 
+	jra 9$ 
+1$:
+	ld (x),a
+	incw x  
+9$:	clr (x)
+	_strxz ptr16 
+	popw x
 	ret 
 
 

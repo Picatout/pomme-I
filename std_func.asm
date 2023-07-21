@@ -221,3 +221,37 @@ is_alnum::
 	call is_alpha
 1$:	ret 
 
+;-------------------------------
+; print application information
+; input:
+;    X        app name string 
+;    Y        copyright string 
+;  on stack 
+;    MAJOR     major version 
+;    MINOR     minor version 
+;    REVISION  revision 
+;-------------------------------
+version_str: .asciz "version " 
+	_argofs 0 
+	_arg MAJOR  1
+	_arg MINOR  2 
+	_arg REVISION 3  
+app_info:
+	call puts 
+	ldw x,y
+	call puts 
+	ldw x,#version_str
+	call puts 
+	ld a,(MAJOR,sp)
+	call prt_i8 
+	call bksp 
+	ld a,#'. 
+	call putc 
+	ld a,(MINOR,sp)
+	call prt_i8 
+	call bksp 
+	ld a,#'. 
+	call putc 
+	ld a,(REVISION,sp)
+	call prt_i8 
+	ret 

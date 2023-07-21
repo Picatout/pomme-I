@@ -1,3 +1,11 @@
+### 2023-07-21
+
+* Retravailler le décompilateur pour supprimer les espaces inutiles entre les unités lexicales.
+
+* Ajouter un message de copyright au moniteur.
+
+* Ajout de démos dans dossier BASIC.
+
 ### 2023-07-20 
 
 * Corrigé bogue dans routine *search_free*. 

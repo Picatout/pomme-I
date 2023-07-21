@@ -100,35 +100,30 @@ free_ram:
 
 ;-------------------------------------
 ;-----------------------
-;  display system 
+;  display POMME BASIC  
 ;  information 
 ;-----------------------
-	MAJOR=1
-	MINOR=0
-	REV=4
+	PB_MAJOR=1
+	PB_MINOR=0
+	PB_REV=5
 		
-copyright_info: .asciz "\npomme BASIC\nCopyright, Jacques Deschenes 2023\nversion "
+app_name: .asciz "pomme BASIC\n"
+pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
 
-print_copyright:
+print_app_info:
 	push base 
 	mov base, #10 
-	ldw x,#copyright_info 
-	call puts 
-	ld a,#MAJOR 
-	call prt_i8
-	call bksp  
-	ld a,#'.
-	call putc 
-	ld a,#MINOR
-	call prt_i8   
-	call bksp 
-	ld a,#'R 
-	call putc 
-	ld a,#REV 
-	call prt_i8
-	ld a,#CR 
-	call putc
+; push app_info()
+; parameters on stack 
+	push #PB_REV 
+	push #PB_MINOR 
+	push #PB_MAJOR  
+	ldw x,#app_name  
+	ldw y,#pb_copyright 
+	call app_info 
+	_drop 3 ; drop function parameters 
 	pop base 
+	call new_line 
 	ret
 
 ;------------------------------
@@ -179,7 +174,7 @@ P1BASIC::
 	call reset_basic
 ; initialize operation pending stack 	
 	_rst_pending 
-	call print_copyright ; display system information
+	call print_app_info ; display BASIC information
 	call free 
 ; set ctrl_c_vector
 	ldw x,#ctrl_c_stop 

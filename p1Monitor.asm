@@ -53,16 +53,28 @@ XAM_BLOK='.
 STOR=': 
 
 
+MON_MAJOR=1 
+MON_MINOR=0 
+MON_REV=1
+
 ; Modeled on Apple I monitor Written by Steve Wozniak 
 
-mon_str: .asciz "pomme I monitor\Copyright, Jacques Deschenes 2023" 
+mon_str: .asciz "pomme I monitor\n"
+mon_copyright: .asciz "Copyright, Jacques Deschenes 2023\n" 
 
 GO_BASIC: 
+    call new_line
     jp P1BASIC 
 WOZMON:: 
     call clr_screen
     ldw x,#mon_str
-    call puts 
+    ldw y,#mon_copyright 
+;push app_info() parameters 
+    push #MON_REV 
+    push #MON_MINOR 
+    push #MON_MAJOR 
+    call app_info 
+    _drop 3 ; drop func parameters 
 GETLINE: 
     ld a,#CR 
     call putc 

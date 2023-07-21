@@ -170,11 +170,13 @@ tok_to_name:
 	PSTR=1     ;  1 word 
 	ALIGN=3
 	LAST_BC=4
-	VSIZE=4
+	PREV_BC=5
+	VSIZE=5
 decompile::
 	push base 
 	mov base,#10
 	_vars VSIZE
+	clr (LAST_BC,sp)
 	ld (ALIGN,sp),a 
 	_ldxz line.addr
 	ldw x,(x)
@@ -186,8 +188,10 @@ decompile::
 	call right_align 
 1$:	call puts 
 	call space
-	_ldyz basicptr
+	_ldyz basicptr 
 decomp_loop:
+	ld a,(LAST_BC,sp)
+	ld (PREV_BC,sp),a 
 	_ldaz count 
 	jrne 0$
 	jp decomp_exit 
@@ -197,7 +201,9 @@ decomp_loop:
 	tnz a 
 	jrne 1$
 	jp decomp_exit   
-1$:	cp a,#QUOTE_IDX 
+1$:	
+	ld (LAST_BC,sp),a 
+	cp a,#QUOTE_IDX 
 	jrne 2$
 	jp quoted_string 
 2$:	cp a,#VAR_IDX 
@@ -222,8 +228,7 @@ decomp_loop:
 	jrne 7$
 	jra lit_word
 7$:	
-; print command,funcion or operator 	 
-	ld (LAST_BC,sp),a
+; print command,function or operator 	 
 	call tok_to_name 
 	tnz a 
 	jrne 9$
@@ -232,6 +237,19 @@ decomp_loop:
 	call strlen 
 	cp a,#2 
 	jrpl 10$
+	ld a,(PREV_BC,sp)
+	cp a,#VAR_IDX 
+	jreq 92$
+	cp a,#LITW_IDX
+	jreq 92$
+	cp a,#STR_VAR_IDX
+	jreq 92$ 
+	cp a,#QUOTE_IDX
+	jrne 94$
+92$:
+	ld a,#BS 
+	call putc 
+94$:
 	ld a,(x)
 	call putc 
 	jra decomp_loop 
@@ -239,7 +257,7 @@ decomp_loop:
 	call puts
 prt_space:
 	call space 
-	jra decomp_loop
+	jp decomp_loop
 ; print variable name 	
 variable: ; VAR_IDX 
 	ld a,(y)
@@ -254,26 +272,8 @@ variable: ; VAR_IDX
 ; print literal integer  
 lit_word: ; LITW_IDX 
 	_get_word
-	tnzw x 
-	jrpl 1$
-	ld a,(LAST_BC,sp)
-	cp a,#GOSUB_IDX 
-	jrmi 1$ 
-	cp a,#GOTO_IDX 
-	jrugt 1$ 
-	subw x,#0x8000
-	addw x,lomem
-	pushw y 
-	ldw x,(x)
-	ldw y,x ; line #
-	ldw x,(1,sp) ; basicptr
-	subw x,#2 ; 
-	ldw (x),y
-	ldw x,y   
-	popw y 
-1$:	 
 	call print_int 
-	jra prt_space 	
+	jp decomp_loop  	
 ; print comment	
 comment: ; REM_IDX 
 	ld a,#''
@@ -284,7 +284,7 @@ comment: ; REM_IDX
 ; print quoted string 	
 quoted_string:	
 	call prt_quote  
-	jp prt_space
+	jp decomp_loop 
 ; print \letter 	
 .if 0
 letter: 

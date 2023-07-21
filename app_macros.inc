@@ -203,3 +203,8 @@
     sub a,#pending_stack+PENDING_STACK_SIZE
     .endm 
 
+    ; compare a with last pushed op 
+    .macro _cp_op 
+    cp a,[psp]
+    .endm 
+    

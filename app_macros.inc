@@ -207,4 +207,9 @@
     .macro _cp_op 
     cp a,[psp]
     .endm 
+
+    ; drop last pushed op  
+    .macro _drop_op 
+    _incz psp+1 
+    .endm 
     

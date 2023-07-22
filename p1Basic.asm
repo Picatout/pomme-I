@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=5
+	PB_REV=6
 		
 app_name: .asciz "pomme BASIC\n"
 pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
@@ -4055,6 +4055,48 @@ cmd_cls:
 	call clr_screen 
 	_next 
 
+;-----------------------------
+; BASIC: LOCATE line, column 
+; set terminal cursor position
+;------------------------------
+	COL=1 
+	LN=COL+INT_SIZE 
+cmd_locate:
+	call arg_list 
+	cp a,#2 
+	jreq 1$ 
+	jp syntax_error 
+1$: 
+	ld a,#27 
+	call uart_putc 
+	ld a,#'[
+	call uart_putc 
+	_i16_fetch LN
+	ld a,#255
+	call itoa
+	ld a,(x)
+	call uart_putc 
+	ld a,(1,x)
+	cp a,#SPACE 
+	jreq 2$ 
+	call uart_putc
+2$: ld a,#';
+	call uart_putc 
+	_i16_fetch COL 
+	ld a,#255 
+	call itoa 
+	ld a,(x)
+	call uart_putc
+	ld a,(1,x)
+	cp a,#SPACE 
+	jreq 3$ 
+	call uart_putc 
+3$: ld a,#'H 
+	call uart_putc
+	_drop 2*INT_SIZE 
+	_next  
+
+
 ;------------------------------
 ;      dictionary 
 ; format:
@@ -4101,6 +4143,7 @@ dict_end:
 	_dict_entry,4,"NEXT",NEXT_IDX 
 	_dict_entry,3,"MOD",MOD_IDX 
 	_dict_entry,5,"LOMEM",LOMEM_IDX 
+	_dict_entry,6,"LOCATE",LOCATE_IDX 
 	_dict_entry,4,"LOAD",LOAD_IDX 
 	_dict_entry 4,"LIST",LIST_IDX
 	_dict_entry 3,"LET",LET_IDX

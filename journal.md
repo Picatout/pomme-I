@@ -1,5 +1,7 @@
 ### 2023-07-21
 
+* Ajout de la commande **LOCATE ligne, colonne** pour positionner le curseur. 
+
 * Retravailler le décompilateur pour supprimer les espaces inutiles entre les unités lexicales.
 
 * Ajouter un message de copyright au moniteur.

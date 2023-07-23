@@ -1,3 +1,9 @@
+### 2023-07-22
+
+* Corrigé bogue dans décompilateur, le guillemet de droite des chaînes était manquant.
+
+* Ajout du programme BASIC [rnd.walk.bas](BASIC/rnd.walk.bas).
+
 ### 2023-07-21
 
 * Ajout de la commande **LOCATE ligne, colonne** pour positionner le curseur. 

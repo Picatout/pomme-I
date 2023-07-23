@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=6
+	PB_REV=7
 		
 app_name: .asciz "pomme BASIC\n"
 pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"

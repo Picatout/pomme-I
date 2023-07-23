@@ -243,9 +243,7 @@ decomp_loop:
 	cp a,#LITW_IDX
 	jreq 92$
 	cp a,#STR_VAR_IDX
-	jreq 92$ 
-	cp a,#QUOTE_IDX
-	jrne 94$
+	jrne 94$ 
 92$:
 	ld a,#BS 
 	call putc 

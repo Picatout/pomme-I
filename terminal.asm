@@ -40,6 +40,7 @@ ANSI=0
     .area CODE 
 .endif 
 
+	.include "inc/ps2_codes.inc"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;   UART subroutines
@@ -498,31 +499,6 @@ erase_line:
 	call putc 
 	ret 
 
-;-------------------------------
-; save current cursor postion 
-; this value persist to next 
-; call to this procedure.
-; ANSI: CSI s
-;--------------------------------
-save_cursor_pos: 
-	call send_csi 
-	ld a,#'s 
-	call putc 
-	ret 
-
-;--------------------------------
-; restore cursor position from 
-; saved value 
-; ANSI: CSI u	
-;---------------------------------
-restore_cursor_pos:
-	push a 
-	call send_csi 
-	ld a,#'u 
-	call putc 
-	pop a 
-	ret 
-
 ;---------------------------------
 ; move cursor to CPOS 
 ; input:
@@ -914,15 +890,24 @@ display_line:
 ; non ANSI terminal 
 ; like STM8_terminal 
 ; 
+; CTRL+R  repeat last input line 
+;
 ; input:
 ;   none 
 ; output:
 ;   A     line length 
 ;   X     tib address 
 ;--------------------------
+MAX_LEN=60
 	LN_LEN=1
+	CPOS=2
+	CHAR=3 
+	VSIZE=CHAR  
 readln:
-	push a 
+	_vars VSIZE 
+	bset sys_flags,#FSYS_UPPER 
+	ld (LN_LEN,sp),a 
+	ld (CPOS,sp),a  
 	ldw x,#tib 
 	tnz a  
 	jreq 1$ 
@@ -930,18 +915,26 @@ readln:
 	decw x 
 1$:
 	call uart_getc
+	ld (CHAR,sp),a 
 	cp a,#SPACE 
 	jruge 8$
 	cp a,#CR 
-	jreq 9$ 
+	jrne 12$
+	jp 9$ 
+12$:
 	cp a,#BS 
 	jrne 2$ 
 	tnz (LN_LEN,sp)
 	jreq 1$ 
+	ld a,(CPOS,sp)
+	cp a,(LN_LEN,sp)
+	jrmi 1$ 
+	ld a,#BS 
 	call uart_putc 
 	decw x 
 	clr (x)
 	dec (LN_LEN,sp)
+	dec (CPOS,sp)
 	jra 1$ 
 2$: 
 	cp a,#CTRL_R 
@@ -950,6 +943,7 @@ readln:
 	jrne 1$ 
 	call strlen 
 	ld (LN_LEN,sp),a
+	ld (CPOS,sp),a 
 	call puts  
 	decw x
 	jra 1$ 
@@ -960,6 +954,16 @@ readln:
 	ld a,#CR 
 	jra 9$
 4$:	
+	cp a,#CTRL_L 
+	jrne 5$ 
+	bres sys_flags,#FSYS_UPPER
+	jra 1$  
+5$:
+	cp a,#CTRL_U 
+	jrne 6$ 
+	bset sys_flags,#FSYS_UPPER 
+	jra 1$ 
+6$:
 	cp a,#ESC 
 	jrne 1$ 
 	call uart_getc 
@@ -968,17 +972,180 @@ readln:
 	call clr_screen
 	clr (LN_LEN,sp)
 	jra 10$ 
-8$: call uart_putc 
+8$: 
+	cp a,#128 
+	jrmi 88$  
+; virtual keys 
+	cp a,#VK_LEFT ; left arrow 
+	jrne 82$ 
+	tnz (CPOS,sp)
+	jreq 1$ 
+	call cursor_left 
+	jp 1$ 
+82$: 
+	cp a,#VK_RIGHT ; right arrow  
+	jreq 84$
+	jp 1$ 
+84$:
+	ld a,(CPOS,sp)
+	cp a,(LN_LEN,sp)
+	jrmi 86$
+	jp 1$ 
+86$:
+	call cursor_right
+	jp 1$ 
+88$: 
+	ld a,(CPOS,sp)
+	cp a,(LN_LEN,sp)
+	jreq 89$ 
+; replace charater in middle of line 
+	ld a,(CHAR,sp)
+	ld (x),a 
+	call uart_putc 
+	inc (CPOS,sp) 
+	incw x 
+	jp 1$
+89$: ; append character to end of line 
+	ld a,(LN_LEN,sp)
+	cp a,#MAX_LEN 
+	jrmi 892$
+    jp 1$ 
+892$:
+	ld a,(CHAR,sp)
+	call uart_putc 
 	ld (x),a 
 	incw x 
 	clr (x)
 	inc (LN_LEN,sp)
-	jra 1$ 
+	inc (CPOS,sp)
+	jp 1$ 
 9$:	call uart_putc  
 10$: 
 	ldw x,#tib 
+	ld a,(LN_LEN,sp)
+	_drop VSIZE 
+	ret 
+
+;----------------------
+; move cursor 1 space 
+; left 
+;----------------------
+cursor_left:
+	decw x 
+	dec (CPOS+2,sp)
+	call send_csi 
+	ld a,#'D 
+	call uart_putc 
+	ret 
+
+;-------------------------
+; move cursor 1 space 
+; right 
+;-------------------------
+cursor_right:
+	incw x 
+	inc (CPOS+2,sp)
+	call send_csi 
+	ld a,#'C 
+	call uart_putc 
+	ret 
+
+;-------------------------------
+; save current cursor postion 
+; this value persist to next 
+; call to this procedure.
+; ANSI: CSI s
+;--------------------------------
+save_cursor_pos: 
+	push a 
+	call send_csi 
+	ld a,#'s 
+	call putc 
 	pop a 
 	ret 
+
+;--------------------------------
+; restore cursor position from 
+; saved value 
+; ANSI: CSI u	
+;---------------------------------
+restore_cursor_pos:
+	push a 
+	call send_csi 
+	ld a,#'u 
+	call putc 
+	pop a 
+	ret 
+
+;----------------------------
+; set cursor at line,column 
+; input:
+;    XH    line 
+;    XL    column 
+;-----------------------------
+set_cursor_pos:
+	pushw x 
+	call send_csi 
+	clrw x 
+	ld a,(1,sp)
+	ld xl,a 
+	ld a,#255
+	call itoa
+	ld a,(x)
+	call uart_putc 
+	ld a,(1,x)
+	cp a,#SPACE 
+	jreq 2$ 
+	call uart_putc
+2$: ld a,#';
+	call uart_putc 
+	clrw x 
+	ld a,(2,sp)
+	ld xl,a 
+	ld a,#255 
+	call itoa 
+	ld a,(x)
+	call uart_putc
+	ld a,(1,x)
+	cp a,#SPACE 
+	jreq 3$ 
+	call uart_putc 
+3$: ld a,#'H 
+	call uart_putc
+	_drop 2 
+	ret 
+
+;--------------------
+; ask terminal to 
+; send charater at 
+; current cursor 
+; position 
+; output:
+;    A    character 
+;------------------
+get_char_at:
+	ld a,#ESC 
+	call uart_putc 
+	ld a,#'_ 
+	call uart_putc 
+	ld a,#'C 
+	call uart_putc 
+    push  sys_flags  
+	bres sys_flags,#FSYS_UPPER 
+	call uart_getc
+	pop sys_flags  
+	ret 
+
+;--------------------
+; send ESC[
+;--------------------
+send_csi:
+	ld a,#27 
+	call uart_putc 
+	ld a,#'[
+	call uart_putc 	
+	ret 
+
 .endif 
 
 ;----------------------------------

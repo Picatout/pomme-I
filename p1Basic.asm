@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=7
+	PB_REV=8
 		
 app_name: .asciz "pomme BASIC\n"
 pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
@@ -1074,12 +1074,17 @@ let_string2:
 	ldw x,(DEST_SIZE,sp)
 	subw x,(TEMP,sp)
 	ldw (DEST_SIZE,sp),x 
+; left side of '=' evaluated 
+; expect '=' 
 	ld a,#REL_EQU_IDX 
 	call expect 
-	ld a,(y)
+; evaluate right side 
+; it may be:
+;    string expression 
+;    CHR$(expr) 
+	_next_token 
 	cp a,#QUOTE_IDX
 	jrne 4$
-	incw y 
 	ldw x,y
 	ldw (SRC_ADR,sp),x  
 	call strlen  ; copy count 
@@ -1095,9 +1100,10 @@ let_string2:
 	ldw x,(SIZE,sp) 
 	_strxz acc16 
 	jra 5$ 
-4$: ; VAR$ expression 
-	ld a,#STR_VAR_IDX
-	call expect 
+4$: 
+	; VAR$ expression 
+	cp a,#STR_VAR_IDX
+	jrne 42$  
 	call get_var_adr 
 	call get_string_slice
 	ldw (SRC_ADR,sp),x   
@@ -1106,6 +1112,20 @@ let_string2:
 	ld (SIZE+1,sp),a 
 	cp a,(DEST_SIZE+1,sp)
 	jrugt 0$
+	jra 5$ 
+42$: cp a,#CHAR_IDX 
+	jreq 44$ 
+	jp syntax_error 
+44$: _call_code 
+	ld a,xl 
+	and a,#127 
+	ldw x,(DEST_ADR,sp)
+	tnz (x)
+	jrne 46$ 
+	clr (1,x)
+46$:	
+	ld (x),a 
+	jra 9$  
 5$:
 	ldw x,(DEST_ADR,sp) 
 	ldw (TEMP,sp),y ; save basic pc   
@@ -3099,31 +3119,12 @@ func_back_slash:
 	rlwa x 
 	ret   
 
-;----------------------------
-;BASIC: CHAR(expr)
-; évaluate expression 
-; and take the 7 least 
-; bits as ASCII character
-; output: 
-; 	A:X ASCII code {0..127}
-;-----------------------------
-func_char:
-	call func_args 
-	cp a,#1
-	jreq 1$
-	jp syntax_error
-1$:	_i16_pop
-	rrwa x 
-	and a,#0x7f 
-	rlwa x  
-	ret 
-
 ;---------------------
 ; BASIC: ASC(string|char|char function)
 ; extract first character 
 ; of string argument 
 ; output:
-;    A:X    int24 
+;    X    character  
 ;---------------------
 func_ascii:
 	ld a,#LPAREN_IDX
@@ -4072,30 +4073,42 @@ cmd_locate:
 	ld a,#'[
 	call uart_putc 
 	_i16_fetch LN
-	ld a,#255
-	call itoa
-	ld a,(x)
-	call uart_putc 
-	ld a,(1,x)
-	cp a,#SPACE 
-	jreq 2$ 
-	call uart_putc
-2$: ld a,#';
-	call uart_putc 
+	ld a,xl 
 	_i16_fetch COL 
-	ld a,#255 
-	call itoa 
-	ld a,(x)
-	call uart_putc
-	ld a,(1,x)
-	cp a,#SPACE 
-	jreq 3$ 
-	call uart_putc 
-3$: ld a,#'H 
-	call uart_putc
+	ld xh,a 
+	call set_cursor_pos
 	_drop 2*INT_SIZE 
 	_next  
 
+;-----------------------------
+; BASIC CHAT(line,column) 
+; get CHaracter AT line,column 
+; from terminal 
+; output:
+;   X     character 
+;------------------------------
+	COL=1 
+	LN=COL+INT_SIZE 
+func_chat:
+	call func_args 
+	cp a,#2 
+	jreq 1$ 
+	jp syntax_error 
+1$:
+	call save_cursor_pos 
+	_i16_fetch LN 
+	ld a,xl 
+	_i16_fetch COL 
+	ld xh,a 
+	call set_cursor_pos 
+	call get_char_at 
+	clrw x 
+	ld xl,a 
+	_i16_store COL 
+	call restore_cursor_pos
+	_i16_fetch COL 
+	_drop 2*INT_SIZE 
+	ret 
 
 ;------------------------------
 ;      dictionary 
@@ -4164,6 +4177,7 @@ dict_end:
 	_dict_entry,3,"CLS",CLS_IDX 
 	_dict_entry,3,"CLR",CLR_IDX 
 	_dict_entry,4,"CHR$",CHAR_IDX  
+	_dict_entry,4,"CHAT",CHAT_IDX 
 	_dict_entry,4,"CALL",CALL_IDX
 	_dict_entry,3,"BYE",BYE_IDX
 	_dict_entry,4,"AUTO",AUTO_IDX 

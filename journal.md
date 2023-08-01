@@ -1,3 +1,17 @@
+### 2023-08-01
+
+* Ajouter la function BASIC **CHAT(y,x)** pour obtenir le caractère à la position ligne,colonne.
+* Modifier routine *let_string* pour permettre var$(expr)=\letter et var$(expr)=expr
+
+* Modifié routine *readln* du fichier [terminal.asm](terminal.asm) 
+    * **CTRL+L** pour passer en mode lower/upper case.
+    * **CTRL+U** pour passer en mode upper case seulement. 
+    * **FLÈCHE GAUCHE** permet de déplacer le curseur vers la gauche.
+    * **FLÈCHE DROITE** permet de déplacer le curseur vers la droite.
+
+Les mouvements gauche droite du curseur permettent de modifier un caractère à l'intérieur de la ligne sans avaoir à effacer la fin de ligne.
+
+
 ### 2023-07-22
 
 * Corrigé bogue dans décompilateur, le guillemet de droite des chaînes était manquant.

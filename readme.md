@@ -63,9 +63,9 @@ L'ordinateur et le terminal sont montés sur la même carte de 63 colonnes. Note
     * **CHAT(ligne,colonne)** pour obtenir le caractère à la position donnée 
     * **CLS** pour effacer l'écran 
 
-* Il est maintenant possible de remplacé un charactère dans une chaîne en faisant:
+* Il est maintenant possible de remplacer un charactère dans une chaîne en faisant:
 
-**var$=CHR$(expr)**
+**var$(expr)=CHR$(expr)**
 
 sans affecter le reste de la chaîne.
 

@@ -57,6 +57,21 @@ L'ordinateur et le terminal sont montés sur la même carte de 63 colonnes. Note
 
 ![pomme-I-board-assembly.png](docs/pomme-I-board-assembly.png)
 
+## 2023-08-01
+* Le vocubulaire s'est enrichie de 3 mots supplémentaires
+    * **LOCATE ligne,colonne** pour positionner le curseur 
+    * **CHAT(ligne,colonne)** pour obtenir le caractère à la position donnée 
+    * **CLS** pour effacer l'écran 
+
+* Il est maintenant possible de remplacé un charactère dans une chaîne en faisant:
+
+**var$=CHR$(expr)**
+
+sans affecter le reste de la chaîne.
+
+* L'éditeur de ligne permet maintenant de se déplacer à l'intérieur de la ligne avec les flèches gauche et droite pour remplacer 1 ou plusieurs caractères sans avoir à effacer la fin de la ligne.
+
+
 ## 2023-07-11
 
 La version 1.0 de POMME BASIC est maintenant complétée. Elle comprend 50 mots réservés.

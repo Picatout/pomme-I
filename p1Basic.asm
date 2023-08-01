@@ -4068,10 +4068,6 @@ cmd_locate:
 	jreq 1$ 
 	jp syntax_error 
 1$: 
-	ld a,#27 
-	call uart_putc 
-	ld a,#'[
-	call uart_putc 
 	_i16_fetch LN
 	ld a,xl 
 	_i16_fetch COL 

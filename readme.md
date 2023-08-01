@@ -13,6 +13,20 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2023-08-01
+* Le vocubulaire s'est enrichie de 3 mots supplémentaires
+    * **LOCATE ligne,colonne** pour positionner le curseur 
+    * **CHAT(ligne,colonne)** pour obtenir le caractère à la position donnée 
+    * **CLS** pour effacer l'écran 
+
+* Il est maintenant possible de remplacer un charactère dans une chaîne en faisant:
+
+**var$(expr)=CHR$(expr)**
+
+sans affecter le reste de la chaîne.
+
+* L'éditeur de ligne permet maintenant de se déplacer à l'intérieur de la ligne avec les flèches gauche et droite pour remplacer 1 ou plusieurs caractères sans avoir à effacer la fin de la ligne.
+
 ## 2023-07-19 
 
 Le POMME I  est maintenant complété et installlé dans son boitier. 
@@ -56,20 +70,6 @@ La mémoire RAM 23LC1024 n'est pas utilisée dans cette première version du POM
 L'ordinateur et le terminal sont montés sur la même carte de 63 colonnes. Notez que les **OPTION SWITCHES** ne sont pas utilisées dans cette application du terminal. Mais un *jumper* doit-être installé entre les broches **D2** et **GND** du terminal. Ce *jumper*  est fournie et installé à l'achat de la carte. Ce *jumper* annulle l'option écho local. Sans lui les caractères saisis au clavier du terminal apparaîssent en double a l'écran. 
 
 ![pomme-I-board-assembly.png](docs/pomme-I-board-assembly.png)
-
-## 2023-08-01
-* Le vocubulaire s'est enrichie de 3 mots supplémentaires
-    * **LOCATE ligne,colonne** pour positionner le curseur 
-    * **CHAT(ligne,colonne)** pour obtenir le caractère à la position donnée 
-    * **CLS** pour effacer l'écran 
-
-* Il est maintenant possible de remplacer un charactère dans une chaîne en faisant:
-
-**var$(expr)=CHR$(expr)**
-
-sans affecter le reste de la chaîne.
-
-* L'éditeur de ligne permet maintenant de se déplacer à l'intérieur de la ligne avec les flèches gauche et droite pour remplacer 1 ou plusieurs caractères sans avoir à effacer la fin de la ligne.
 
 
 ## 2023-07-11

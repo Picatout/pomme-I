@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=8
+	PB_REV=9
 		
 app_name: .asciz "pomme BASIC\n"
 pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
@@ -1886,7 +1886,6 @@ prt_loop:
 	_unget_token 
 	call condition
 	call print_int
-	call space
 	jp reset_semicol 
 8$:
 	tnz (SEMICOL,sp)
@@ -4106,6 +4105,17 @@ func_chat:
 	_drop 2*INT_SIZE 
 	ret 
 
+;----------------------------
+; BASIC: CPOS 
+; get terminal cursor position 
+;  line=CPOS/256 
+;  column=CPOS AND 255 
+;-----------------------------
+func_cpos:
+	call cursor_pos  
+	ret 
+
+
 ;------------------------------
 ;      dictionary 
 ; format:
@@ -4169,6 +4179,7 @@ dict_end:
 	_dict_entry,3,"DIR",DIR_IDX  
 	_dict_entry,3,"DIM",DIM_IDX 
 	_dict_entry,3,"DEL",DEL_IDX 
+	_dict_entry,4,"CPOS",CPOS_IDX 
 	_dict_entry,3,"CON",CON_IDX 
 	_dict_entry,3,"CLS",CLS_IDX 
 	_dict_entry,3,"CLR",CLR_IDX 

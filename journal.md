@@ -1,3 +1,17 @@
+### 2023-08-02 
+
+* tag V1.0R9
+
+* Ajout de la commande BASIC  **CPOS** qui retourne la position du curseur du terminal sous la forme d'un entier:
+    * ligne=CPOS/256
+    * colonne=CPOS AND 255 
+
+* Réparer bogue dans *readln* , **CTRL_R** ne fonctionnait plus.
+
+* Modification algorithm de *set_seed*  lorsque l'argument est <> 0:
+    * seedx=paramètre passé 
+    * seedy=0
+
 ### 2023-08-01
 
 * Ajouter la function BASIC **CHAT(y,x)** pour obtenir le caractère à la position ligne,colonne.

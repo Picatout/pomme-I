@@ -13,6 +13,19 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2023-08-02 
+
+Version **1.0R9** 
+
+* Ajout de la fonction BASIC **CPOS** qui retourne la position du curseur sur le terminal comme un entier. 
+    * ligne=CPOS/256  {1..25}
+    * colonne=CPOS AND 255 {1..62}
+Si le terminal ne retourne pas de position la valeur de X=0.
+
+* Réparer la commande **CTRL_R** de l'éditeur de ligne qui ne fonctionnait plus. 
+
+* Modifié la routine *set_seed* dans [p1Kernel.asm](p1Kernel.asm) lorsque le paramètre est différent de **0**, *seedy* est  initialisé à **0**. 
+
 ## 2023-08-01
 * Le vocubulaire s'est enrichie de 3 mots supplémentaires
     * **LOCATE ligne,colonne** pour positionner le curseur 

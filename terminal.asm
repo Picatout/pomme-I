@@ -941,6 +941,7 @@ readln:
 	jrne 3$
 	tnz (LN_LEN,sp)
 	jrne 1$ 
+	ldw x,#tib 
 	call strlen 
 	ld (LN_LEN,sp),a
 	ld (CPOS,sp),a 
@@ -979,8 +980,9 @@ readln:
 	cp a,#VK_LEFT ; left arrow 
 	jrne 82$ 
 	tnz (CPOS,sp)
-	jreq 1$ 
+	jreq 81$ 
 	call cursor_left 
+81$: 
 	jp 1$ 
 82$: 
 	cp a,#VK_RIGHT ; right arrow  
@@ -1136,6 +1138,63 @@ get_char_at:
 	pop sys_flags  
 	ret 
 
+;--------------------------
+; ask terminal for 
+; cursor position  
+;  ESC[6n
+;  terminal return:
+;     ESC[line;columnR 
+;  output:
+;      XH   line 
+;      XL   column 
+;      X=0  if no report 
+;--------------------------
+	LINE=1 
+	COL=LINE+2 
+	VSIZE=COL+1
+cursor_pos:
+	_vars VSIZE
+	clrw x 
+	ldw (LINE,sp),x 
+	ldw (COL,sp),x  
+	bres sys_flags,#FSYS_TIMER 
+	ldw x,#10 
+	_strxz timer  
+	call send_csi 
+	ld a,#'6 
+	call uart_putc 
+	ld a,#'n 
+	call uart_putc 
+0$:
+	btjt sys_flags,#FSYS_TIMER,9$ 
+	call uart_qgetc 
+	jreq 0$ 
+	call uart_getc 
+	cp a,#ESC 
+	jrne 0$ 
+	call uart_getc 
+	cp a,#'[ 
+    jrne 9$ 
+1$:
+	call get_parameter 
+	cp a,#'; 
+	jrne 9$ 
+	ldw (LINE,sp),x 
+	call get_parameter 
+	cp a,#'R 
+	jreq 8$ 
+	clrw x 
+	ldw (LINE,sp),x 
+	jra 9$ 
+8$:	
+	ldw (COL,sp),x 
+9$: ld a,(LINE+1,sp)
+	ld xh,a 
+	ld a,(COL+1,sp)
+	ld xl,a 	
+	_drop VSIZE 
+	ret 
+
 ;--------------------
 ; send ESC[
 ;--------------------
@@ -1147,6 +1206,34 @@ send_csi:
 	ret 
 
 .endif 
+
+;------------------------
+; receive parameter from 
+; terminal 
+; output:
+;     X     value 
+;------------------------
+	DIGIT=1
+	VSIZE=DIGIT+1
+get_parameter:
+	clrw x
+	pushw x  
+1$:	btjt sys_flags,#FSYS_TIMER,2$  
+	call uart_qgetc 
+	jreq 1$ 
+	call uart_getc
+	call is_digit 
+	jrne 2$  
+	sub a,#'0 
+	ld (DIGIT+1,sp),a  
+	ld a,#10 
+	mul x,a 
+	addw x,(DIGIT,sp)
+	jra 1$ 
+2$: 
+	_drop  VSIZE 
+	ret
+
 
 ;----------------------------------
 ; convert to hexadecimal digit 

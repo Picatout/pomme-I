@@ -103,7 +103,8 @@ code_addr:
     _code_entry func_ticks, TICKS_IDX 
     _code_entry func_char, CHAR_IDX
     _code_entry func_key, KEY_IDX  
-    _code_entry func_chat,CHAT_IDX  
+    _code_entry func_chat,CHAT_IDX
+    _code_entry func_cpos,CPOS_IDX   
     FUNC_LAST=TOK_IDX-1                     
 ; commands 
     _code_entry cmd_sleep,SLEEP_IDX 

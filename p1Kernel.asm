@@ -356,7 +356,7 @@ prng::
 ; initialize seedx:seedy 
 ; input:
 ;    X    0 -> seedx=ticks, seedy=tib[0..1] 
-;    X    !0 -> seedx=X, seedy=[0x6000]
+;    X    !0 -> seedx=X, seedy=[0x60<<8|XL]
 ;-------------------------------------------
 set_seed:
     tnzw x 
@@ -368,8 +368,8 @@ set_seed:
     ret 
 1$:  
     _strxz seedx
-    ldw x,0x6000
-    _strxz seedy  
+    _clrz seedy 
+    _clrz seedy+1
     ret 
 
  

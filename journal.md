@@ -1,3 +1,13 @@
+### 2023-08-05 
+
+* V1.0R10 
+
+* Modifié commande BASIC **CLS** pour ajouter un délais de 5 msec pour laisser le temps au terminal d'effacer l'écran.
+
+### 2023-08-04
+
+* Modifié la routine *app_info* du fichier [std_func.asm](std_func.asm) pour afficher un **R** à la place du **.** avant le numéro de révision.
+
 ### 2023-08-02 
 
 * tag V1.0R9

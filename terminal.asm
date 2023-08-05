@@ -967,10 +967,7 @@ readln:
 6$:
 	cp a,#ESC 
 	jrne 1$ 
-	call uart_getc 
-	cp a,#'C  
-	jrne 1$ 
-	call clr_screen
+	call process_esc 
 	clr (LN_LEN,sp)
 	jra 10$ 
 8$: 
@@ -1027,6 +1024,40 @@ readln:
 	ld a,(LN_LEN,sp)
 	_drop VSIZE 
 	ret 
+
+;----------------------
+; received an ESC 
+; process ANSI command 
+;----------------------
+	P1=1 
+	P2=P1+1 
+	VSIZE=P2+1 
+process_esc:
+	_vars VSIZE 
+	bres sys_flags,#FSYS_TIMER 
+	ldw x,#10 
+	_strxz timer 
+	call get_parameter 
+	cp a,#'c  
+	jrne 1$ 
+	call clr_screen
+	jra 9$
+1$:
+	cp a,#'; 
+	jrne 9$ 
+	ldw (P1,sp),x 
+	call get_parameter 
+	cp a,#'R 
+	jrne 9$ 
+	ldw (P2,sp),x 
+	ld a,(P1+1,sp)
+	ld xh,a 
+	ld a,(P2+1,sp)
+	ld xl,a 
+9$:
+	_drop VSIZE 
+	ret 
+
 
 ;----------------------
 ; move cursor 1 space 
@@ -1223,7 +1254,7 @@ get_parameter:
 	jreq 1$ 
 	call uart_getc
 	call is_digit 
-	jrne 2$  
+	jrnc 2$  
 	sub a,#'0 
 	ld (DIGIT+1,sp),a  
 	ld a,#10 

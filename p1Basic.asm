@@ -105,7 +105,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=9
+	PB_REV=10
 		
 app_name: .asciz "pomme BASIC\n"
 pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
@@ -4052,7 +4052,11 @@ bytes_free: .asciz "bytes free"
 ; to terminal 
 ;-----------------------------
 cmd_cls:
-	call clr_screen 
+	call clr_screen
+	bres sys_flags,#FSYS_TIMER 
+	ldw x,#4 ; give time to terminal
+	_strxz timer  
+	btjf sys_flags,#FSYS_TIMER,.
 	_next 
 
 ;-----------------------------

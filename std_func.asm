@@ -250,7 +250,7 @@ app_info:
 	ld a,(MINOR,sp)
 	call prt_i8 
 	call bksp 
-	ld a,#'. 
+	ld a,#'R  
 	call putc 
 	ld a,(REVISION,sp)
 	call prt_i8 

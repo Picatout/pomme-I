@@ -1,8 +1,16 @@
+### 2023-08-06
+
+* tag V1.0R11 
+
+* Modifié readln pour accepter les minuscules/majuscules et le compilateur pour mettre en majuscules est mots réservés.
+
+* Modifié le décompilateur pour éliminer les espaces inutiles.
+
 ### 2023-08-05 
 
 * V1.0R10 
 
-* Modifié commande BASIC **CLS** pour ajouter un délais de 5 msec pour laisser le temps au terminal d'effacer l'écran.
+* Modifié commande BASIC **CLS** pour ajouter un délais de 4 msec pour laisser le temps au terminal d'effacer l'écran.
 
 ### 2023-08-04
 

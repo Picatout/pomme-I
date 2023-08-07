@@ -700,16 +700,6 @@ skip_display:
 	ld (CPOS,sp),a 
 	jp update_cursor
 10$:
-	cp a,#CTRL_L 
-	jrne 11$ 
-	bres sys_flags,#FSYS_UPPER 
-	jp skip_display 
-11$: 
-	cp a,#CTRL_U 
-	jrne 12$
-	bset sys_flags,#FSYS_UPPER
-	jp skip_display 
-12$: 
 	cp a,#CTRL_O
 	jrne 13$ 
 ; toggle between insert/overwrite
@@ -781,7 +771,6 @@ readln_quit:
 	ld a,(LL,sp)
 	_drop VSIZE 
 	popw y 
-	bset sys_flags,#FSYS_UPPER 
 	ret
 
 ;--------------------------
@@ -905,7 +894,6 @@ MAX_LEN=60
 	VSIZE=CHAR  
 readln:
 	_vars VSIZE 
-	bset sys_flags,#FSYS_UPPER 
 	ld (LN_LEN,sp),a 
 	ld (CPOS,sp),a  
 	ldw x,#tib 
@@ -953,18 +941,10 @@ readln:
 	jrne 4$
 	bres flags,#FAUTO 
 	ld a,#CR 
+	clr tib 
+	clr (LN_LEN,sp)
 	jra 9$
 4$:	
-	cp a,#CTRL_L 
-	jrne 5$ 
-	bres sys_flags,#FSYS_UPPER
-	jra 1$  
-5$:
-	cp a,#CTRL_U 
-	jrne 6$ 
-	bset sys_flags,#FSYS_UPPER 
-	jra 1$ 
-6$:
 	cp a,#ESC 
 	jrne 1$ 
 	call process_esc 

@@ -337,6 +337,7 @@ parse_symbol:
 	addw x,#1 ; keep space for token identifier
 	ldw (FIRST_CHAR,sp),x  
 symb_loop: 
+	call to_upper 
 	ld (x), a 
 	incw x
 	ld a,([in.w],y)

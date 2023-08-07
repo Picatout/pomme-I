@@ -169,8 +169,6 @@ P1BASIC::
 ; reset hardware stack 
     ldw x,#STACK_EMPTY 
     ldw sp,x 
-; upper case letters
-	bset sys_flags,#FSYS_UPPER	
 	call reset_basic
 ; initialize operation pending stack 	
 	_rst_pending 

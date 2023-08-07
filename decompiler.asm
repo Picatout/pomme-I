@@ -157,6 +157,26 @@ tok_to_name:
 9$:	_drop VSIZE
 	ret
 
+;------------------------------------
+; check if token need space 
+; before or after it 
+; input:
+;   A     token index 
+; output:
+;   C     set need space 
+;------------------------------------
+need_space:
+	cp a,#DELIM_LAST+1 
+	jrmi 9$ 
+	cp a,#SYMB_LAST+1 
+	jrmi 8$ 
+	cp a,#OP_REL_LAST+1 
+	jrmi 9$ 
+8$: scf
+	ret 
+9$:	rcf 
+	ret 
+
 ;-------------------------------------
 ; decompile tokens list 
 ; to original text line 
@@ -234,28 +254,17 @@ decomp_loop:
 	jrne 9$
 	jp decomp_exit
 9$:	
-	call strlen 
-	cp a,#2 
-	jrpl 10$
-	ld a,(PREV_BC,sp)
-	cp a,#VAR_IDX 
-	jreq 92$
-	cp a,#LITW_IDX
-	jreq 92$
-	cp a,#STR_VAR_IDX
-	jrne 94$ 
-92$:
-	ld a,#BS 
-	call putc 
-94$:
-	ld a,(x)
-	call putc 
-	jra decomp_loop 
-10$:
 	call puts
-prt_space:
+	ld a,(LAST_BC,sp)
+	call need_space 
+	jrc prt_space
+    jp decomp_loop 
+prt_space:	
+	ld a,(y)
+	call need_space 
+	jrnc 1$ 
 	call space 
-	jp decomp_loop
+1$:	jp decomp_loop
 ; print variable name 	
 variable: ; VAR_IDX 
 	ld a,(y)
@@ -270,8 +279,13 @@ variable: ; VAR_IDX
 ; print literal integer  
 lit_word: ; LITW_IDX 
 	_get_word
-	call print_int 
-	jp decomp_loop  	
+	call print_int
+	ld a,(y)
+	call need_space
+	jrc 1$ 
+	ld a,#BS 
+	call putc 
+1$:	jp decomp_loop  	
 ; print comment	
 comment: ; REM_IDX 
 	ld a,#''

@@ -131,4 +131,5 @@ code_addr:
     _code_entry cmd_randomize, RNDMIZE_IDX
     _code_entry cmd_cls, CLS_IDX 
     _code_entry cmd_locate,LOCATE_IDX
+    _code_entry cmd_renum,RENUM_IDX 
     CMD_LAST=TOK_IDX-1

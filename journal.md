@@ -1,3 +1,9 @@
+### 2023-08-07
+
+* tag V1.0R12 
+
+* Ajout de la commande BASIC **RENUM**
+
 ### 2023-08-06
 
 * tag V1.0R11 

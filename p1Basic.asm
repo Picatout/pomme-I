@@ -4117,6 +4117,196 @@ func_cpos:
 	call cursor_pos  
 	ret 
 
+;------------------------------
+; BASIC: RENUM [expr1, epxr2]  
+; renumber program lines 
+; starting at expr1 step expr2 
+;------------------------------
+	STEP=1
+	START=STEP+2 
+	VSIZE=START+1
+cmd_renum:
+	btjt flags,#FRUN,9$
+	call arg_list 
+	tnz a 
+	jrne 1$
+	ldw x,#10 
+	pushw x 
+	pushw x 
+	jra 4$
+1$: cp a,#1 
+	jrne 2$ 
+	ldw x,#10 
+	pushw x 
+	jra 4$ 
+2$:	cp a,#2 
+	jreq 4$
+	jp syntax_error 
+4$:
+	call line_to_addr
+	popw y
+	popw x 
+	call renumber ; x=START,Y=STEP 
+	call addr_to_line  
+9$:	clr (y)
+	_next 
+
+;--------------------------
+; replace GOTO|GOSUB|THEN 
+; line#
+; by line address|0x8000
+;--------------------------
+line_to_addr:
+	ldw y,lomem 
+0$:	_stryz line.addr 
+	addw y,#LINE_HEADER_SIZE
+1$:	call scan_for_branch 
+	tnzw x 
+	jreq 4$ 
+	ldw x,(x) ; line # 
+	call line_by_addr
+	addw y,#2 
+	jra 1$ 
+4$: ; at end of line 
+	incw y 
+	cpw y,progend 
+	jrmi 0$ 
+9$:
+	ret 
+
+;-------------------------
+; replace line number 
+; by line address|0x8000
+; input:
+;   X    line number 
+;   Y    plug address 
+;--------------------------
+line_by_addr:
+	clr a 
+	call search_lineno
+	tnz a 
+	jrne 2$ 
+	ld a,#ERR_BAD_BRANCH
+	jp tb_error 
+2$: ld a,xh 
+	or a,#0x80 
+	ld xh,a 
+	ldw (y),x 
+	ret 
+
+
+;---------------------------
+; replace target line address 
+; by line number 
+;---------------------------
+addr_to_line:
+	ldw y,lomem 
+0$: _stryz line.addr 
+	addw y,#LINE_HEADER_SIZE
+1$: call scan_for_branch
+	tnzw x 
+	jreq 4$ 
+	ldw x,(x) ; ln_addr|0x8000
+	ld a,xh 
+	and a,#0x7f 
+	ld xh,a ; x=line addr 
+	ld a,(x)
+	ld (y),a 
+	ld a,(1,x)
+	ld (1,y),a 
+	addw y,#2 
+	jra 1$ 
+4$: ; at end of line 
+	incw y 
+	cpw y,progend 
+	jrmi 0$ 
+9$:	ret 
+
+;------------------------
+; renumber program lines 
+; input:
+;   x   start line 
+;   y   step 
+;-------------------------
+	LN_LEN=1
+	STEP=LN_LEN+2
+	VSIZE=STEP+1  
+renumber:
+	_vars VSIZE 
+	clr (LN_LEN,sp)
+	ldw (STEP,sp),y
+	ldw y,lomem 
+1$:	ldw (y),x ; first line 
+	addw x,(STEP,sp)
+	ld a,(2,y)
+	ld (LN_LEN+1,sp),a 
+	addw y,(LN_LEN,sp)
+	cpw y,progend 
+	jrmi 1$ 
+9$:	_drop VSIZE 
+	ret 
+
+;-------------------------
+; scan line for 
+; GOTO|GOSUB|THEN ln# 
+; input:
+;    Y   basic pointer 
+; output:
+;    X   0 | addr GO...
+;-------------------------
+scan_for_branch:
+	clrw x 
+0$:	ld a,(y)
+	cp a,#EOL_IDX 
+	jreq 9$ 
+	cp a,#GOTO_IDX
+	jreq 8$ 
+	cp a,#GOSUB_IDX 
+	jreq 8$ 
+	cp a,#THEN_IDX
+	jrne 1$ 
+	ld a,(1,y)
+	cp a,#LITW_IDX
+	jreq 8$ 
+	incw y 
+	jra 0$ 
+1$: cp a,#DELIM_LAST+1
+	jrpl 2$ 
+	incw y 
+	jra 0$ 
+2$: cp a,#LITC_IDX 
+	jrne 3$ 
+	addw y,#2 
+	jra 0$ 
+3$: cp a,#SYMB_LAST+1
+	jrpl 4$ 
+	addw y,#3 
+	jra 0$ 
+4$: cp a,#BOOL_OP_LAST+1 
+	jrpl 5$ 
+	incw y 
+	jra 0$ 
+5$: cp a,#QUOTE_IDX 
+	jrne 6$
+	call skip_string 
+	jra 0$ 
+6$: cp a,#REM_IDX 
+	jrne 7$ 
+	ldw x, line.addr  
+	ld a,(2,x)
+	clrw x 
+	ld xl,a 
+	addw x,line.addr 
+	decw x 
+	ldw y,x 
+	clrw x 
+	jra 9$ 
+7$:	incw y 
+	jra 0$ 
+8$: addw y,#2 
+	ldw x,y ; skip 2 op_codes 
+9$:	ret 
+
 
 ;------------------------------
 ;      dictionary 
@@ -4154,6 +4344,7 @@ dict_end:
 	_dict_entry,3,"RND",RND_IDX
 	_dict_entry,9,"RANDOMIZE",RNDMIZE_IDX 
 	_dict_entry,6,"RETURN",RET_IDX
+	_dict_entry,5,"RENUM",RENUM_IDX 
 	_dict_entry 3,"REM",REM_IDX
 	_dict_entry 5,"PRINT",PRINT_IDX 
 	_dict_entry,4,"POKE",POKE_IDX 

@@ -1,4 +1,14 @@
+### 2023-08-08
+
+* Augmenter la taille de la file **rx1_queue** à 16 octets.
+
+* Modifié routine *cursor_pos* dans [terminal.asm](terminal.asm)
+    * vide la file rx1_queue avant d'envoyer la commande au terminal.
+    * Augmenter le délais d'attente à 20msec.
+
 ### 2023-08-07
+
+* Ajout de la structure de contrôle **DO statements UNTIL condition** 
 
 * tag V1.0R12 
 

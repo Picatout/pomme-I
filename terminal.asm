@@ -50,7 +50,7 @@ ANSI=0
 ;;		115200 8N1 no flow control
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-RX_QUEUE_SIZE==8 ; UART receive queue size 
+RX_QUEUE_SIZE==16 ; UART receive queue size 
 
 DTR=0 ; pin D2 received DTR signal from terminaal 
 ;--------------------------------------
@@ -166,6 +166,13 @@ uart_init:
 	_drop VSIZE 
 	ret
 
+;---------------------------
+;  clear rx1_queue 
+;---------------------------
+clear_queue:
+    _clrz rx1_head 
+	_clrz rx1_tail 
+	ret 
 
 ;---------------------------------
 ;  set output vector 
@@ -1168,8 +1175,9 @@ cursor_pos:
 	clrw x 
 	ldw (LINE,sp),x 
 	ldw (COL,sp),x  
+	call clear_queue 
 	bres sys_flags,#FSYS_TIMER 
-	ldw x,#10 
+	ldw x,#20 
 	_strxz timer  
 	call send_csi 
 	ld a,#'6 

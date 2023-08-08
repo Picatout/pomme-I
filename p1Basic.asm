@@ -104,7 +104,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=12
+	PB_REV=13
 		
 app_name: .asciz "pomme BASIC\n"
 pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
@@ -3534,42 +3534,6 @@ func_timeout:
 1$:	ret 
  	
 .if 0
-;------------------------------
-; BASIC: DO 
-; initiate a DO ... UNTIL loop 
-;------------------------------
-	DOLP_ADR=1 
-	DOLP_LN_ADDR=3
-	VSIZE=4 
-kword_do:
-	_vars VSIZE 
-	ldw (DOLP_ADR,sp),y
-	_ldxz line.addr  
-	ldw (DOLP_LN_ADDR,sp),x
-	_next 
-
-;--------------------------------
-; BASIC: UNTIL expr 
-; loop if exprssion is false 
-; else terminate loop
-;--------------------------------
-kword_until: 
-	call condition  
-	tnz a 
-	jrne 9$ 
-	tnzw x 
-	jrne 9$ 
-	ldw y,(DOLP_ADR,sp)
-;	ldw basicptr,y 
-	ldw x,(DOLP_LN_ADDR,sp)
-	ldw line.addr,x
-	btjf flags,#FRUN,8$ 
-;	ld a,(2,x)
-;	_straz count  
-8$:	_next 
-9$:	; remove loop data from stack  
-	_drop VSIZE
-	_next 
 
 const_hse:
 	ldw x,#CLK_SWR_HSE
@@ -4306,6 +4270,33 @@ scan_for_branch:
 	ldw x,y ; skip 2 op_codes 
 9$:	ret 
 
+;----------------------------
+; BASIC: DO 
+; introtude DO...UNTIL condition 
+; loop 
+;------------------------------
+	LN_ADR=1
+	BPTR=LN_ADR+2 
+kword_do:
+	pushw y 
+	_ldxz line.addr 
+	pushw x 
+	_next 
+
+;----------------------------------
+; BASIC: UNTIL condition 
+; control loop of DO..UNTIL 
+;----------------------------------
+kword_until:
+	call condition 
+	tnzw x 
+	jrne 8$ 
+	ldw x,(LN_ADR,sp)
+	_strxz line.addr 
+	ldw y,(BPTR,sp)
+	_next 
+8$:	_drop 4 
+	_next 
 
 ;------------------------------
 ;      dictionary 
@@ -4328,6 +4319,7 @@ scan_for_branch:
 ; this sort order is for a cleaner WORDS cmd output. 	
 dict_end:
 	_dict_entry,5,"WORDS",WORDS_IDX 
+	_dict_entry,5,"UNTIL",UNTIL_IDX 
 	_dict_entry,4,"TONE",TONE_IDX 
 	_dict_entry,2,"TO",TO_IDX
 	_dict_entry,5,"TICKS",TICKS_IDX 
@@ -4368,6 +4360,7 @@ dict_end:
 	_dict_entry,5,"ERASE",ERASE_IDX 
 	_dict_entry,3,"FOR",FOR_IDX 
 	_dict_entry,3,"END",END_IDX
+	_dict_entry,2,"DO",DO_IDX 
 	_dict_entry,3,"DIR",DIR_IDX  
 	_dict_entry,3,"DIM",DIM_IDX 
 	_dict_entry,3,"DEL",DEL_IDX 

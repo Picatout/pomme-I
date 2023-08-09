@@ -3232,7 +3232,6 @@ func_char:
 	call expression 
 	ld a,xl 
 	clrw x  
-	and a,#0x7f 
 	ld xl,a 
 	ld a,#RPAREN_IDX 
 	call expect 

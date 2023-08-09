@@ -1,5 +1,9 @@
 ### 2023-08-08
 
+* V1.0R14 
+
+* Modifié commande **CHR$(expr) pour accepter tous les caractères jusqu'à 255.
+
 * Augmenter la taille de la file **rx1_queue** à 16 octets.
 
 * Modifié routine *cursor_pos* dans [terminal.asm](terminal.asm)

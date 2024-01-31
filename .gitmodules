@@ -1,0 +1,3 @@
+[submodule "stm8_terminal"]
+	path = stm8_terminal
+	url = https://github.com/picatout/stm8_terminal

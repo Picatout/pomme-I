@@ -1,0 +1,17 @@
+-muwx
+-i build/stm8s207k8/pomme_1.ihx
+-Y
+-b HOME = 0x8000
+-b DATA = 0x0001
+-b SSEG = 0xffffffff
+-u
+-k /usr/bin/../share/sdcc/lib/stm8
+-k /usr/share/sdcc/lib/stm8
+-l stm8
+-l stm8
+build/stm8s207k8/p1Kernel.rel
+build/p1Monitor.rel
+build/p1Basic.rel
+build/p1Forth.rel
+
+-e

@@ -132,7 +132,7 @@ CALLL   =     0xCD     ;CALL opcodes
 IRET_CODE =   0x80    ; IRET opcode 
 ADDWX   =     0x1C    ; opcode for ADDW X,#word  
 JPIMM   =     0xCC    ; JP addr opcode 
-
+RET     =     0x81    ; RET opcode
 ;---------------------------
         .area CODE 
 ;---------------------------
@@ -506,7 +506,7 @@ EXIT:
 	LDW Y,(Y)    ;Y=b
         LD A,(3,X)    ;D = c
         LD  (Y),A     ;store c at b
-	ADDW X,#4 ; DDROP 
+	_DDROP 
         RET     
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3639,6 +3639,46 @@ JSRC2:
         CALL   SNAME
         JP     RBRAC
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       DEFER ( <sgring>)
+;       create a defered word 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER DEFER,5,"DEFER"
+        call TOKEN
+        CALL SNAME 
+        _DOLIT 0 
+        CALL  COMA 
+        JP SEMIS  
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       DEFER! (xt1 xt2 -- )
+; set defered word ca of xt2 
+; to execute xt1 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER DEFRSTO,6,"DEFER!"
+        _DOLIT JPIMM 
+        CALL OVER 
+        CALL CSTOR 
+        CALL ONEP
+        JP STORE 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       IS ( xt "name" )
+;  set defered word "name" 
+;  to execute xt 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER IS,2,"IS" 
+        call TOKEN
+        call DUPP 
+        call QBRAN 
+        .word FORGET2 ; invalid parameter
+        call NAMEQ ; ( a -- ca na | a F )
+        call QBRAN 
+        .word 1$  ; not in dictionary 
+        JP DEFRSTO
+1$: ; word not found 
+        JP FORGET2 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       IMMEDIATE       ( -- )

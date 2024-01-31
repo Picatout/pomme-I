@@ -1,5 +1,12 @@
-### 2024-01-30
+### 2024-01-31
 
+* Ajout des mots **DEFER**,**DEFER!** et **IS** à p1Forth.
+
+* Réinitialisation du dépôt.
+
+* Travail sur p1Forth.
+
+### 2024-01-30
 
 * p1Monitor  version V1.0R2
 

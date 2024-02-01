@@ -61,8 +61,8 @@ MON_REV=2
 
 ; Modeled on Apple I monitor Written by Steve Wozniak 
 
-mon_str: .asciz "pomme I monitor\n"
-mon_copyright: .asciz "Copyright, Jacques Deschenes 2023,24\n" 
+mon_str: .asciz "pomme I monitor "
+mon_copyright: .asciz " Jacques Deschenes (c) 2023,24\n" 
 
 GO_BASIC: 
     call new_line

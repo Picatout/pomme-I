@@ -3998,8 +3998,8 @@ WORS2:  RET
         
 ;; Hardware reset
 
-forth_name: .asciz "p1Forth\n"
-forth_cpr: .asciz "Copyright Jacques Deschenes 2023,24\n"
+forth_name: .asciz "p1Forth "
+forth_cpr: .asciz " Jacques Deschenes (c) 2023,24\n"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       hi      ( -- )

@@ -239,8 +239,6 @@ version_str: .asciz "version "
 	_arg REVISION 3  
 app_info::
 	call puts 
-	ldw x,y
-	call puts 
 	ldw x,#version_str
 	call puts 
 	ld a,(MAJOR,sp)
@@ -255,5 +253,6 @@ app_info::
 	call putc 
 	ld a,(REVISION,sp)
 	call prt_i8
-	call new_line  
+	ldw x,y
+	call puts 
 	ret 

@@ -31,8 +31,8 @@ KERNEL_MAJOR = 1
 KERNEL_MINOR = 0 
 KERNEL_REV = 2 
 
-kernel_name: .asciz "p1Kernel\n" 
-kernel_cpr: .asciz "Copyright Jacques Deschênes 2023,24\n"
+kernel_name: .asciz "p1Kernel " 
+kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"
 
 kernel_show_version:
     call clr_screen

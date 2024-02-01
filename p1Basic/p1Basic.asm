@@ -103,8 +103,8 @@ free_ram:
 	PB_MINOR=0
 	PB_REV=15
 		
-app_name: .asciz "pomme BASIC\n"
-pb_copyright: .asciz "Copyright, Jacques Deschenes 2023\n"
+app_name: .asciz "pomme BASIC "
+pb_copyright: .asciz " Jacques Deschenes (c)2023,24\n"
 
 print_app_info:
 	push base 

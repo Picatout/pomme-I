@@ -1,3 +1,7 @@
+### 2024-02-01
+
+* modifié routine **app_info** pour afficher la version après le nom de l'application.
+
 ### 2024-01-31
 
 * Mise à jour du [readme.md](readme.md).

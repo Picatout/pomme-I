@@ -3511,6 +3511,14 @@ PNAM1:  CALL     STRQP
         .ascii     " name" ;null input
         JP     ABOR1
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       CELLS ( n1 -- n2 )
+; n2 is size of n1 cells 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CELLS,5,"CELLS"
+        _DOLIT CELLL 
+        JP STAR 
+
 ;; FORTH compiler
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3806,6 +3814,24 @@ DO_DCONST:
     ldw y,(2,y)
     ldw (2,x),y 
     ret 
+
+;--------------------------------
+;  runtime action of DOES>
+;-------------------------------
+DO_DOES:
+
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       DOES> ( C: colon-sys1 – – colon-sys2 )
+; terminate actual definition compilation 
+; begin a no-name new one.
+; leave the code field address on stack 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER DOESGT,5,"DOES>"
+        CALL SEMIS ; close previous definition
+        CALL RBRAC ; compile DOES> action  
+        RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;          TOOLS 

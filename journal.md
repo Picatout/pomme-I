@@ -1,5 +1,9 @@
 ### 2024-02-01
 
+* Travail sur [p1Forth](p1Forth/p1Forth.asm).
+    * Ajouté **DOES&gt;** 
+    * Ajouté **CELLS**
+     
 * modifié routine **app_info** pour afficher la version après le nom de l'application.
 
 ### 2024-01-31

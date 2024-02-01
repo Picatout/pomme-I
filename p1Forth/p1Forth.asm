@@ -3664,6 +3664,29 @@ JSRC2:
         JP STORE 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       DEFER@ (xt1 -- xt2 )
+; xt2 is xt1 execution token 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER DEFRAT,6,"DEFER@"
+        CALL ONEP 
+        JP AT 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       ACTION-OF ( "name" -- xt )
+; "name" beeing a defered word 
+; xt is its execution token 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER ACTIONOF,9,"ACTION-OF"
+        CALL TOKEN 
+        call DUPP 
+        call QBRAN 
+        .word FORGET2 ; invalid parameter
+        call NAMEQ ; ( a -- ca na | a F )
+        call QBRAN 
+        .word FORGET2  ; not in dictionary 
+        JP DEFRAT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       IS ( xt "name" )
 ;  set defered word "name" 
 ;  to execute xt 
@@ -3675,10 +3698,8 @@ JSRC2:
         .word FORGET2 ; invalid parameter
         call NAMEQ ; ( a -- ca na | a F )
         call QBRAN 
-        .word 1$  ; not in dictionary 
+        .word FORGET2  ; not in dictionary 
         JP DEFRSTO
-1$: ; word not found 
-        JP FORGET2 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       IMMEDIATE       ( -- )

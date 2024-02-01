@@ -1,5 +1,7 @@
 ### 2024-01-31
 
+* Ajout des mots **DEFER@** et **ACTION-OF** à p1Forth.
+
 * Ajout des mots **DEFER**,**DEFER!** et **IS** à p1Forth.
 
 * Réinitialisation du dépôt.

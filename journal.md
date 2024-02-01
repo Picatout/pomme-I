@@ -1,5 +1,7 @@
 ### 2024-01-31
 
+* Mise à jour du [readme.md](readme.md).
+
 * Ajout des mots **DEFER@** et **ACTION-OF** à p1Forth.
 
 * Ajout des mots **DEFER**,**DEFER!** et **IS** à p1Forth.

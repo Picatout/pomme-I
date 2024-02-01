@@ -13,6 +13,10 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2024-01-31
+
+L'ordinateur **pomme-I** a maintenant un second la langage, **p1Forth**. À partir du moniteur la touche rapide **CTRL+F** lance **p1Forth**. pour revenir au moniteur il faut utiliser le mot **bye** comme en **p1BASIC**.  Le travail sur **p1Forth** n'est pas complété. Certains mots seront ajoutés et d'autres possiblement retirés.
+
 ## 2023-08-02 
 
 Version **1.0R9** 

@@ -137,6 +137,17 @@ RET     =     0x81    ; RET opcode
         .area CODE 
 ;---------------------------
 
+;-------------------------
+;  CTRL+C abort routine 
+;-------------------------
+user_abort:
+        subw x,#CELLL 
+        ldw     y,#-1
+        ldw     (x),y 
+        call ABORQ 
+        .byte 13
+        .ascii "\nuser aborted"
+
 ;; Main entry points and COLD start data
 forth_init::
 ; clear all RAM
@@ -148,7 +159,9 @@ clear_ram0:
 	jrule clear_ram0
         ldw x,#RPP
         ldw sp,x
-	jp ORIG
+	ldw x,#user_abort 
+        _strxz ctrl_c_vector
+        jp ORIG
 
 ; COLD initialize these variables.
 UZERO:
@@ -3289,6 +3302,90 @@ STRCQ:
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       DO ( n1 n2 -- R: n2 n1 )
+;  initiale DO ... LOOP 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER DO,2+IMEDD+COMPO,"DO"
+        CALL    COMPI 
+        .WORD   SWAPP 
+        CALL    COMPI 
+        .WORD   TOR 
+        CALL    COMPI 
+        .WORD   TOR 
+        CALL    HERE  ; ( -- addr )
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       LOOP ( a -- )
+; DO ... LOOP control 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER LOOP,4+IMEDD+COMPO,"LOOP"
+        CALL    COMPI 
+        .word   RT_LOOP
+LOOP1:
+        CALL    COMPI 
+        .WORD   TBRAN 
+        CALL    COMA ; compile loop address  
+        CALL    COMPI 
+        .word   RFROM 
+        CALL    COMPI 
+        .word   RFROM 
+        CALL    COMPI 
+        .word   DDROP 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;   LOOP run time 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+RT_LOOP:
+        POPW    Y 
+        _stryz  YTEMP 
+        LDW     Y,(1,SP)
+        INCW    Y 
+        LDW (1,sp),y
+        SUBW    Y,(3,SP)
+        NEGW    Y  
+        SUBW    X,#CELLL 
+        LDW     (X),Y  
+        JP      [YTEMP]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       +LOOP ( a -- )
+; DO ... n +LOOP 
+; n increment loop I 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PLOOP,5+IMEDD+COMPO,"+LOOP"
+        CALL    COMPI 
+        .WORD   RT_PLOOP         
+        JRA     LOOP1
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  +LOOP runtime 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+RT_PLOOP:
+        POPW Y 
+        _stryz YTEMP 
+        LDW     Y,X 
+        LDW     Y,(Y)
+        _stryz  XTEMP 
+        LDW     Y,(1,sp)
+        ADDW    Y,XTEMP 
+        LDW     (1,SP),Y 
+        LD      A,(3,SP)
+        _straz  XTEMP 
+        LD      A,(4,SP)
+        _straz  XTEMP+1 
+        CPW     Y,XTEMP 
+        JRSLT   2$ 
+        CLRW    Y 
+        JRA     4$ 
+2$:     LDW     Y,#-1
+4$:     LDW     (X),Y 
+        JP      [YTEMP]
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       BEGIN   ( -- a )
 ;       Start an infinite or
 ;       indefinite loop structure.
@@ -3977,6 +4074,17 @@ TNAM3:  CALL     SWAPP
 TNAM4:  CALL     DDROP
         JP     ZERO
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       .NAME ( ca -- )
+;  print name associate with 
+;  code address ca 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER DOT_NAME,5,".NAME"
+        CALL    SPAC
+        CALL    TNAME 
+        JRA     DOTID 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       .ID     ( na -- )
 ;        Display  name at address.
@@ -3991,8 +4099,8 @@ TNAM4:  CALL     DDROP
         CALL     ANDD    ;mask lexicon bits
         JP     UTYPE
 DOTI1:  CALL     DOTQP
-        .byte      9
-        .ascii     " noName"
+        .byte      8
+        .ascii     " no name"
         RET
 
 WANT_SEE=0

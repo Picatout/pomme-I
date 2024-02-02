@@ -573,6 +573,7 @@ EXIT:
         ldw (x),y 
         ret 
 
+.if 0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       LOCAL ( n -- )
 ;       reserve n slots on return stack
@@ -611,7 +612,7 @@ EXIT:
         JP [YTEMP]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;        ( n -- w)
+;       NR@ ( n -- w)
 ;      fetch nth element of return stack 
 ;      n==0 is same as R@ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -648,7 +649,7 @@ EXIT:
         POPW X 
         _DROPN DBL_SIZE  
         RET 
-
+.endif 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       >R      ( w -- )
@@ -3386,6 +3387,55 @@ RT_PLOOP:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       CASE ( -- 0 )
+; start a select control structure 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CASE,4+IMEDD+COMPO,"CASE"
+        _DOLIT 0 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       OF ( n1 n2 -- n1 |  )
+; if n1==n2 execute up to ENDOF 
+; push patching address for ENDOF on R:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER OF,2+IMEDD+COMPO,"OF"
+        _COMPI OVER
+        _COMPI  EQUAL 
+        CALL  IFF
+        _COMPI  DROP 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       ENDOF ( -- )
+; close OF block 
+; push ENDCASE patching address on R 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER ENDOF,5+IMEDD+COMPO,"ENDOF"
+        CALL ELSEE         
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       ENDCASE ( n1 -- R: ax )
+; discard n1 and patch all ENDOF 
+; branch address stored on R: 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER,ENDCASE,7+IMEDD+COMPO,"ENDCASE"
+        _COMPI  DROP 
+        CALL    DEPTH
+        CALL    ZEQUAL 
+        _TBRAN  3$ ; stack empty 
+1$:     CALL    QDUP 
+        _TBRAN  2$ 
+        RET 
+2$:     CALL   THENN 
+        _BRAN  1$ 
+3$:     CALL    ABORQ 
+        .word   19 
+        .ascii  " bad CASE structure"
+        
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       BEGIN   ( -- a )
 ;       Start an infinite or
 ;       indefinite loop structure.
@@ -4103,7 +4153,7 @@ DOTI1:  CALL     DOTQP
         .ascii     " no name"
         RET
 
-WANT_SEE=0
+WANT_SEE=1
 .if WANT_SEE 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       SEE     ( -- ; <string> )

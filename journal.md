@@ -4,6 +4,8 @@
 
 * Ajout de **DO**, **LOOP** et **+LOOP**.
 
+* Ajout de **CASE**, **OF**, **ENDOF** et **ENDCASE**.
+
 ### 2024-02-01
 
 * Travail sur [p1Forth](p1Forth/p1Forth.asm).

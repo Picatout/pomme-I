@@ -106,3 +106,10 @@
    CALL DOTS 
    .endif  
    .endm 
+
+    ; to compile a word 
+    .macro _COMPI w 
+    CALL    COMPI 
+    .WORD   w 
+    .endm 
+    

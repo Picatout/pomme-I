@@ -3421,17 +3421,24 @@ RT_PLOOP:
 ; branch address stored on R: 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER,ENDCASE,7+IMEDD+COMPO,"ENDCASE"
+        CALL    HERE ; check if ENDOF after last OF block 
+        _DOLIT  3 
+        CALL    SUBB 
+        CALL    CAT
+        _DOLIT  JPIMM
+        CALL    EQUAL 
+        _QBRAN  3$  ; last ENDOF missing  
         _COMPI  DROP 
         CALL    DEPTH
         CALL    ZEQUAL 
-        _TBRAN  3$ ; stack empty 
+        _TBRAN  3$ ; stack empty
 1$:     CALL    QDUP 
         _TBRAN  2$ 
         RET 
 2$:     CALL   THENN 
         _BRAN  1$ 
 3$:     CALL    ABORQ 
-        .word   19 
+        .byte   19 
         .ascii  " bad CASE structure"
         
 

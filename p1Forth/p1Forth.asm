@@ -821,7 +821,6 @@ UPL1:   LD     (1,X),A
 DOVAR:
 	SUBW X,#2
         POPW Y    ;get return addr (pfa)
-;        LDW Y,(Y) ; indirect address 
         LDW (X),Y    ;push on stack
         RET     ;go to RET of EXEC
 
@@ -1558,8 +1557,7 @@ MSTA1:	RET
 ;       2*   ( n -- n )
 ;       Multiply tos by 2.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER CELLS,2,"2*"
-TWOSTAR:        
+        _HEADER TWOSTAR,2,"2*"        
         LDW Y,X
 	LDW Y,(Y)
         SLAW Y
@@ -3648,16 +3646,27 @@ JSRC2:
         JP     RBRAC
 
 
+        
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       DEFER ( <sgring>)
 ;       create a defered word 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER DEFER,5,"DEFER"
-        call TOKEN
-        CALL SNAME 
-        _DOLIT 0 
-        CALL  COMA 
-        JP SEMIS  
+        CALL    TOKEN 
+        CALL    SNAME 
+        CALL    OVERT        
+DEFER1:
+        _DOLIT  JPIMM 
+        CALL    CCOMMA 
+        _DOLIT  do_nothing 
+        CALL    COMA 
+        RET
+
+;;;;;;;;;;;;;;;;;;;;;
+; compiled by DEFER 
+;;;;;;;;;;;;;;;;;;;;;
+do_nothing:
+        ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       DEFER! (xt1 xt2 -- )
@@ -3665,9 +3674,6 @@ JSRC2:
 ; to execute xt1 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER DEFRSTO,6,"DEFER!"
-        _DOLIT JPIMM 
-        CALL OVER 
-        CALL CSTOR 
         CALL ONEP
         JP STORE 
 
@@ -3747,8 +3753,19 @@ IMM01:  CALL	LAST
         CALL     SNAME
         CALL     OVERT        
         CALL     COMPI 
-        .word DOVAR 
-        RET
+        .word   PUSH_PA  
+        JP      DEFER1
+
+;----------------------------
+;  compile by CREATE
+;  push parameter address 
+;----------------------------
+PUSH_PA: ; ( -- addr )
+        ldw y,(1,sp)
+        addw y,#3
+        subw x,#CELLL 
+        ldw (x),y
+        RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       VARIABLE  ( -- ; <string> )
@@ -3819,8 +3836,18 @@ DO_DCONST:
 ;  runtime action of DOES>
 ;-------------------------------
 DO_DOES:
-
-        RET 
+        POPW    Y 
+        ADDW    Y,#CELLL 
+        PUSHW   Y 
+        INCW    Y
+        SUBW    X,#CELLL 
+        LDW     (X),Y 
+        CALL    LAST 
+        CALL    AT 
+        CALL    NAMET ; ( na -- ca )
+        _DOLIT  4 
+        CALL    PLUS 
+        JP      STORE  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       DOES> ( C: colon-sys1 – – colon-sys2 )
@@ -3828,10 +3855,17 @@ DO_DOES:
 ; begin a no-name new one.
 ; leave the code field address on stack 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER DOESGT,5,"DOES>"
-        CALL SEMIS ; close previous definition
-        CALL RBRAC ; compile DOES> action  
+        _HEADER DOESGT,5+IMEDD+COMPO,"DOES>"
+        CALL    COMPI 
+        .word   DO_DOES
+        LDW     Y,(1,SP)
+        ADDW    Y,#1
+        CALL    HERE 
+        CALL    COMA  
+        _DOLIT  RET 
+        CALL    CCOMMA 
         RET 
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;          TOOLS 

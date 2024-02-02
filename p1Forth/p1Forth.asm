@@ -129,10 +129,10 @@ XOFF    =     19
 CTRL_X  =     24      ; reboot hotkey 
 ERR     =     27      ;error escape
 CALLL   =     0xCD     ;CALL opcodes
-IRET_CODE =   0x80    ; IRET opcode 
 ADDWX   =     0x1C    ; opcode for ADDW X,#word  
 JPIMM   =     0xCC    ; JP addr opcode 
 RET     =     0x81    ; RET opcode
+
 ;---------------------------
         .area CODE 
 ;---------------------------
@@ -241,8 +241,9 @@ FORGET4:
         jp DROP 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;    SEED ( n -- )
-; Initialize PRNG seed with n 
+;    SEED ( u -- )
+; Initialize PRNG seed with u
+; or if u==0 with ticks counter  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER SEED,4,"SEED"
         ldw y,x 
@@ -351,33 +352,26 @@ INCH:
         LD     A,(1,X)
 	ADDW	X,#2
 putc:         
-OUTPUT: BTJF UART_SR,#UART_SR_TXE,OUTPUT  ;loop until tx empty 
+OUTPUT: 
+        BTJF UART_SR,#UART_SR_TXE,OUTPUT  ;loop until tx empty 
         LD    UART_DR,A   ;send A
         RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       FC-XON  ( -- )
+;       TX-XON  ( -- )
 ;       send XON character 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER FC_XON,6,"FC-XON"
-        subw x,#CELLL 
-        clr (x)
+        _HEADER TX_XON,6,"TX-XON"
         ld a,#XON 
-        ld (1,x),a 
-        call EMIT 
-        ret 
+        jra OUTPUT 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       FC-XOFF ( -- )
+;       TX-XOFF ( -- )
 ;       Send XOFF character 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER FC_XOFF,7,"FC-XOFF"
-        subw x,#CELLL 
-        clr (x)
+        _HEADER TX_XOFF,7,"TX-XOFF"
         ld a,#XOFF 
-        ld (1,x),a 
-        call EMIT 
-        ret
+        jra OUTPUT  
 
 ;; The kernel
 
@@ -605,7 +599,7 @@ EXIT:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;        ( n -- w)
-;      fetch nth element ofr return stack 
+;      fetch nth element of return stack 
 ;      n==0 is same as R@ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER NRAT,3,"NR@"
@@ -815,7 +809,7 @@ UPL1:   LD     (1,X),A
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       doVAR   ( -- a )
 ;       run time code 
-;       for VARIABLE and CREATE.
+;       for VARIABLE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       HEADER DOVAR,COMPO+5,"DOVAR"
 DOVAR:
@@ -1822,9 +1816,10 @@ RSHIFT4:
 ;       terminal input buffer.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER TIB,3,"TIB"
-        CALL     NTIB
-        CALL     CELLP
-        JP     AT
+        SUBW    X,#CELLL
+        LDW     Y,UTIB  
+        LDW     (X),Y
+        RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       @EXECUTE        ( a -- )
@@ -2913,15 +2908,8 @@ FIND5:  CALL     RFROM
         CALL     XORR
         CALL     QBRAN
         .word      BACK1
-        CALL     DOLIT
-        .word      BKSPP
-        CALL     EMIT
-        CALL     ONEM
-        CALL     BLANK
-        CALL     EMIT
-        CALL     DOLIT
-        .word      BKSPP
-        JP     EMIT
+        CALL    ONEM 
+        JP      uart_bksp
 BACK1:  RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2930,8 +2918,13 @@ BACK1:  RET
 ;       and bump cursor.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER TAP,3,"TAP"
+.if 0
         CALL     DUPP
         CALL     EMIT
+.else 
+        LD      A,(1,X)
+        CALL    uart_putc 
+.endif 
         CALL     OVER
         CALL     CSTOR
         JP     ONEP

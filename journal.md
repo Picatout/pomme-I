@@ -3,7 +3,9 @@
 * Travail sur [p1Forth](p1Forth/p1Forth.asm).
     * Ajouté **DOES&gt;** 
     * Ajouté **CELLS**
-     
+    * Modifié **CREATE** pour compilé un deuxième vecteur qui fait un saut vers le code ajouté par **DOES>**.
+    * Renommé **FC-XON** **TX-XON** et **FC-XOFF** **TX-XOFF**, plus significatif.
+
 * modifié routine **app_info** pour afficher la version après le nom de l'application.
 
 ### 2024-01-31

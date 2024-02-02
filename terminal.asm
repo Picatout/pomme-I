@@ -378,16 +378,15 @@ send_csi:
 ; output:
 ;	none 
 ;---------------------------
+uart_bksp::
 bksp::
 	push a 
 	ld a,#BS 
-	call putc 
-.if 1 
+	call putc  
 	ld a,#SPACE 
 	call putc 
 	ld a,#BS 
 	call putc 
-.endif 
 	pop a 
 	ret 
  

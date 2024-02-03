@@ -1082,14 +1082,15 @@ cursor_column::
 	call uart_putc 
 	ret 
 
-;--------------------
+;-----------------------
+; STM8_terminal specific
 ; ask terminal to 
 ; send charater at 
 ; current cursor 
 ; position 
 ; output:
 ;    A    character 
-;------------------
+;------------------------
 get_char_at::
 	ld a,#ESC 
 	call uart_putc 

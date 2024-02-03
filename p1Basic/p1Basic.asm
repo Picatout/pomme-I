@@ -3442,7 +3442,7 @@ cmd_locate:
 ;-----------------------------
 ; BASIC CHAT(line,column) 
 ; get CHaracter AT line,column 
-; from terminal 
+; from stm8_terminal 
 ; output:
 ;   X     character 
 ;------------------------------

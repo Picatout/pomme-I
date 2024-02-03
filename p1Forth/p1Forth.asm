@@ -2468,10 +2468,10 @@ NUFQ1:  RET
         CALL     ZERO
         CALL     MAX
         CALL     TOR
-        JRA      CHAR2
-CHAR1:  CALL     SPAC
-CHAR2:  CALL     DONXT
-        .word    CHAR1
+        JRA      SPAC2
+SPAC1:  CALL     SPAC
+SPAC2:  CALL     DONXT
+        .word    SPAC1
         RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2497,6 +2497,157 @@ TYPE2:  _DONXT  TYPE1
         CALL    EMIT
         _DOLIT  LF
         JP      EMIT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       TAB ( -- )
+; send a tabulation character to
+; terminal.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER TABB,3,"TAB"
+        _DOLIT  TAB 
+        JP      EMIT 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       CSI ( -- ) 
+; Send to ANSI terminal 
+; Constrol Sequence Introducer 
+; ESC [ 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CSI,3,"CSI"
+        LD      A,#ESC 
+        CALL    uart_putc 
+        LD      A,#'[
+        CALL    uart_putc 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       CLS ( -- )
+; send clear screen message to 
+; ANSI terminal.  
+; ESC c
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CLS,3,"CLS"
+        LD      A,#ESC 
+        CALL    uart_putc 
+        LD      A,#'c 
+        CALL    uart_putc 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       CPOS ( -- n1 n2 )
+; send ANSI TERMINAL sequence to get 
+; position curseur ESC [6n  
+; n1 -> line 
+; n2 -> column 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CPOS,4,"CPOS"
+        PUSHW   X 
+        CALL    cursor_pos  
+        LDW     Y,X 
+        POPW    X 
+        PUSHW   Y 
+        CLRW    Y 
+        POP     A ; line 
+        LD      YL,A  
+        SUBW    X,#CELLL 
+        LDW     (X),Y 
+        POP     A  ; column 
+        LD      YL,A 
+        SUBW    X,#CELLL 
+        LDW     (X),Y 
+        RET 
+
+;--------------------------------
+;       LN-COL ( n1 n2 -- )
+; remove from stack line,col 
+; parameters and put them in Y 
+;-------------------------------- 
+LN_COL:
+        LDW     Y,X 
+        _TDROP 
+        LDW     Y,(Y)
+        LD      A,YL ; line 
+        LDw     Y,X 
+        _TDROP 
+        LDW     Y,(Y) ; YL=column 
+        LD      YH,A  ; YH=line 
+        RET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       LOCATE ( n1 n2 -- )
+; Send ANSI terminal sequence to 
+; position cursor 
+; CSI n2 ; n1 H 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER LOCATE,6,"LOCATE"
+        CALL    LN_COL 
+        PUSHW   X 
+        LDW     X,Y 
+        CALL    set_cursor_pos
+        POPW    X 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       SAVE-POS ( -- )
+; Send ANSI terminal command to 
+; save current cursor postion 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER SAVE_POS,8,"SAVE-POS"
+        CALL    save_cursor_pos
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       REST-POS ( -- )
+; Send ANSI terminal command  to 
+; restore cursor postion from 
+; previous SAVE-POS 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER REST_POS,8,"REST-POS"
+        CALL    restore_cursor_pos
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;   CHAR-AT ( n1 n2 -- c )
+; Ask stm8-terminal which character 
+; is at position n1,n2 
+; n1 -> line 
+; n2 -> column 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CHAR_AT,7,"CHAR-AT"
+        CALL    SAVE_POS 
+        CALL    LOCATE  
+        CALL    get_char_at
+        SUBW    X,#CELLL 
+        CLRW    Y 
+        LD      YL,A 
+        LDW     (X),Y  
+        JP      REST_POS   
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       CHAR ( string -- c )
+; return first character of string 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER CHAR,4,"CHAR" 
+       _DOLIT   SPACE 
+        CALL     PARSE
+        _QBRAN  CHAR1
+        JP      CAT 
+CHAR1:  CALL    ABORQ 
+        .byte   17 
+        .ascii  " missing argument"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       [CHAR] ( string -- c )
+; to be used while compiling word 
+; return first character of string 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER BRACK_CHAR,6+IMEDD+COMPO,"[CHAR]" 
+       _DOLIT   SPACE 
+        CALL     PARSE
+        _QBRAN  CHAR1 
+        JP      CAT 
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       do$     ( -- a )
@@ -4137,7 +4288,6 @@ TNAM4:  CALL     DDROP
 ;  code address ca 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER DOT_NAME,5,".NAME"
-        CALL    SPAC
         CALL    TNAME 
         JRA     DOTID 
 
@@ -4158,6 +4308,7 @@ TNAM4:  CALL     DDROP
 DOTI1:  CALL     DOTQP
         .byte      8
         .ascii     " no name"
+        CALL    SPAC 
         RET
 
 WANT_SEE=1
@@ -4168,30 +4319,58 @@ WANT_SEE=1
 ;       Updated for byte machines.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER SEE,3,"SEE"
-        CALL     TICKK    ;starting address
         CALL     CRLF
-        CALL     ONEM
-SEE1:   CALL     ONEP
-        CALL     DUPP
-        CALL     AT
-        CALL     DUPP
-        CALL     QBRAN
-        .word    SEE2
-        CALL     TNAME   ;?is it a name
-SEE2:   CALL     QDUP    ;name address or zero
-        CALL     QBRAN
-        .word    SEE3
-        CALL     SPAC
-        CALL     DOTID   ;display name
-        CALL     ONEP
-        JRA      SEE4
-SEE3:   CALL     DUPP
-        CALL     CAT
-        CALL     UDOT    ;display number
-SEE4:   CALL     NUFQ    ;user control
-        CALL     QBRAN
-        .word    SEE1
-        JP     DROP
+        _DOLIT  ': 
+        CALL    EMIT
+        CALL    SPAC  
+        CALL     TICKK ; ( -- ca )
+        CALL    DUPP 
+        CALL    DOT_NAME
+        CALL    CRLF 
+SEE1: ; ( -- ca )
+        CALL    TABB 
+        CALL    DUPP
+        CALL    CAT   ; -- ca c 
+        _DOLIT  CALLL 
+        CALL    EQUAL 
+        _QBRAN  SEE8 
+; its a CALL move pointer to target field         
+        CALL    ONEP  ; tf  target field  
+        CALL    DUPP  ; tf tf   
+        CALL    AT    ; tf ta   target address 
+        CALL    DUPP  ; tf ta ta      
+        _DOLIT  DOLIT ; check for CALL DOLIT 
+        CALL    EQUAL ; tf ta f 
+        _QBRAN  SEE2 
+        _TDROP  ; -- tf  
+        CALL    CELLP ; literal field    
+        CALL    DUPP  ; 
+        CALL    AT    ; literal 
+        _BRAN   SEE3  
+SEE2:  ; tf ta  
+        CALL    DUPP  ;tf ta ta 
+        CALL    DOT_NAME ;tf ta 
+SEE3: ; tf u 
+        CALL    HDOT 
+        CALL    CRLF  
+        CALL    CELLP           
+        JRA     SEE1 
+SEE8: ; RET?
+        CALL    DUPP 
+        CALL    CAT 
+        _DOLIT  RET 
+        CALL    EQUAL 
+        _QBRAN  SEE9 
+        LD      A,#'; 
+        CALL    uart_putc 
+        JP      CRLF  
+SEE9: ; machine code 
+        CALL    DUPP 
+        CALL    CAT 
+        CALL    HDOT 
+        CALL    ABORQ 
+        .byte   13
+        .ascii  " machine code"
 .endif ; WANT_SEE 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

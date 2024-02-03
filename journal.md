@@ -1,3 +1,20 @@
+### 2024-02-03 
+
+* Travail sur **SEE**, le décompilateur de mots définis avec **:**.  
+
+* Ajout des mots
+    * **CHAR** **( string* -- c )**  qui empile le premier caractère de *string*.
+    * **\[CHAR\]** **( string* -- c )** version IMMEDIATE|COMPILE-ONLY de **CHAR**. 
+
+* Ajout de plusieurs mots pour contrôler le terminal ANSI 
+    * **CSI**  **( -- )** Envoie la séquence Control Sequence Introducer au terminal, i.e.  **ESC [**.
+    * **CLS**  **( -- )** Envoie une commande d'effacement de l'écran au terminal. 
+    * **CPOS** **( -- ligne col )**  Demande au terminal de renvoyé la position actuelle du curseur. 
+    * **LOCATE** **( ligne col -- )**  Demande au terminal de déplacer le curseur à la postion {ligne,colonne}.
+    * **SAVE-POS** **( -- )** Demande au terminal de sauvegarder la postion actuelle du curseur.
+    * **REST-POS**  **( -- )**  Demande au terminal de restaurer la position du curseur à partir de celle sauvegardée par **SAVE-POS**.
+    * **CHAR-AT** **( ligne col -- c )** Demande au **stm8-terminal** de renvoyer le caractère qui est à la position {ligne, colonne}. Cette commande n'est reconnue que par le **stm8_terminal** 
+
 ### 2024-02-02
 
 * Ajouter vecteur pour *user_cancel* i.e. **CTRL+C** à [p1Forth](p1Forth/p1Forth.asm).

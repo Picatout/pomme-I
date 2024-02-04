@@ -543,13 +543,16 @@ EXIT:
 ;       Set  return stack pointer.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER RPSTO,COMPO+3,"RP!"
+        SUBW X,#CELLL 
         POPW Y
-        LDW YTEMP,Y
+        LDW (X),Y
         LDW Y,X
-        LDW Y,(Y)
+        LDW Y,(2,Y)
         LDW SP,Y
-        ADDW X,#CELLL ; a was not dropped, Picatout 2020-05-24
-        JP [YTEMP]
+        LDW Y,X 
+        LDW Y,(Y)
+        ADDW X,#2*CELLL 
+        JP (Y)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       R>      ( -- w )
@@ -573,96 +576,18 @@ EXIT:
         ldw (x),y 
         ret 
 
-.if 0
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       LOCAL ( n -- )
-;       reserve n slots on return stack
-;       for local variables 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER LOCAL,5,"LOCAL"
-        POPW Y  
-        LDW YTEMP,Y ; RETURN ADDRESS 
-        LD A,(1,X)
-        LD YL,A 
-        LD A,#CELLL 
-        MUL Y,A 
-        LDw XTEMP,Y
-        LDW Y,SP 
-        SUBW Y,XTEMP
-        LDW SP,Y 
-        ADDW X,#CELLL 
-        JP [YTEMP]
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       NRDROP ( n -- )
-;       drop n elements from rstack
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER NRDROP,6,"NRDROP" 
-        POPW Y 
-        LDW YTEMP,Y ; RETURN ADDRESS 
-        LD A,(1,X)
-        LD YL,A  
-        LD A,#CELLL 
-        MUL Y,A 
-        LDW XTEMP,Y 
-        LDW Y,SP 
-        ADDW Y,XTEMP 
-        LDW SP,Y  
-        ADDW X,#CELLL 
-        JP [YTEMP]
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       NR@ ( n -- w)
-;      fetch nth element of return stack 
-;      n==0 is same as R@ 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER NRAT,3,"NR@"
-        LD A,(1,X)
-        LD YL,A 
-        LD A,#CELLL 
-        MUL Y,A 
-        LDW YTEMP,Y 
-        LDW Y,SP 
-        ADDW Y,#3 
-        ADDW Y,YTEMP 
-        LDW Y,(Y)
-        LDW (X),Y 
-        RET 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       NR! ( w n --  )
-;       store w on nth position of 
-;       return stack 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER NRSTO,3,"NR!"
-        LDW Y,SP
-        ADDW Y,#3 
-        LDW YTEMP,Y 
-        LD A,(1,X)
-        LD YL,A 
-        LD A,#CELLL 
-        MUL Y,A 
-        ADDW Y,YTEMP
-        PUSHW X 
-        LDW X,(CELLL,X)
-        LDW (Y),X
-        POPW X 
-        _DROPN DBL_SIZE  
-        RET 
-.endif 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       >R      ( w -- )
 ;       Push data stack to return stack.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER TOR,COMPO+2,">R"
-        POPW Y    ;save return addr
-        LDW YTEMP,Y
-        LDW Y,X
-        LDW Y,(Y)  ; W
-        PUSHW Y    ;W >R 
-        ADDW X,#2
-        JP [YTEMP]
+        LDW     Y,(1,sp)
+        PUSHW   Y 
+        LDW     Y,X
+        _TDROP 
+        LDW     Y,(Y)  ; W
+        LDW     (3,SP),Y 
+        RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       SP@     ( -- a )
@@ -807,15 +732,16 @@ ZEQU1:
         LD A,#1
         LDW Y,X
         LDW Y,(2,Y)
-        LDW YTEMP,Y
+        PUSHW Y 
         LDW Y,X
         LDW Y,(Y)
-        ADDW Y,YTEMP
+        ADDW Y,(1,SP) 
         LDW (2,X),Y
         JRC     UPL1
         CLR A
 UPL1:   LD     (1,X),A
         CLR (X)
+        _drop   2 
         RET
 
 ;; System and user variables
@@ -1015,12 +941,13 @@ QDUP1:  RET
         _HEADER PLUS,1,"+"
         LDW Y,X
         LDW Y,(Y)
-        LDW YTEMP,Y
+        PUSHW   Y 
         ADDW X,#2
         LDW Y,X
         LDW Y,(Y)
-        ADDW Y,YTEMP
+        ADDW Y,(1,SP)
         LDW (X),Y
+        _drop 2 
         RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1108,12 +1035,13 @@ DN1:    LDW (X),Y
         _HEADER SUBB,1,"-"
         LDW Y,X
         LDW Y,(Y) ; n2 
-        LDW YTEMP,Y 
+        PUSHW Y 
         ADDW X,#CELLL 
         LDW Y,X
         LDW Y,(Y) ; n1 
-        SUBW Y,YTEMP ; n1-n2 
+        SUBW Y,(1,SP) ; n1-n2 
         LDW (X),Y
+        _drop 2 
         RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1265,7 +1193,7 @@ MIN1:	ADDW X,#2
         _HEADER UMMOD,6,"UM/MOD"
         LDW     Y,X             ; stack pointer to Y
         LDW     X,(X)           ; un
-        LDW     YTEMP,X         ; save un
+        LDW     acc16,X         ; save un
         LDW     X,Y
         INCW    X               ; drop un
         INCW    X
@@ -1274,13 +1202,13 @@ MIN1:	ADDW X,#2
         JRNE    MMSM0
         LDW    X,(1,SP)
         LDW    X,(2,X)          ; udl 
-        LDW     Y,YTEMP         ;divisor 
+        LDW     Y,acc16         ;divisor 
         DIVW    X,Y             ; udl/un 
         EXGW    X,Y 
         JRA     MMSMb 
 MMSM0:    
         LDW     Y,(4,Y)         ; Y=udl (offset before drop)
-        CPW     X,YTEMP
+        CPW     X,acc16
         JRULT   MMSM1           ; X is still on the R-stack
         POPW    X               ; restore stack pointer
         CLRW    Y
@@ -1294,10 +1222,10 @@ MMSM1:
 MMSM3:
         RLCW    X               ; rotate udl bit into uhdh (= remainder)
         JRC     MMSMa           ; if carry out of rotate
-        CPW     X,YTEMP         ; compare udh to un
+        CPW     X,acc16         ; compare udh to un
         JRULT   MMSM4           ; can't subtract
 MMSMa:
-        SUBW    X,YTEMP         ; can subtract
+        SUBW    X,acc16         ; can subtract
         RCF
 MMSM4:
         CCF                     ; quotient bit
@@ -1305,10 +1233,10 @@ MMSM4:
         DEC     A               ; repeat
         JRNE    MMSM3           ; if A == 0
 MMSMb:
-        LDW     YTEMP,X         ; done, save remainder
+        LDW     acc16,X         ; done, save remainder
         POPW    X               ; restore stack pointer
         LDW     (X),Y           ; save quotient
-        LDW     Y,YTEMP         ; remainder onto stack
+        LDW     Y,acc16         ; remainder onto stack
         LDW     (2,X),Y
         RET
 
@@ -1705,11 +1633,12 @@ RSHIFT4:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER DEPTH,5,"DEPTH"
         LDW Y,SP0    ;save data stack ptr
-	LDW XTEMP,X
-        SUBW Y,XTEMP     ;#bytes = SP0 - X
+	PUSHW X 
+        SUBW Y,(1,sp)     ;#bytes = SP0 - X
         SRAW Y    ;Y = #stack items
 	SUBW X,#2
         LDW (X),Y     ; if neg, underflow
+        _drop 2 
         RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1723,10 +1652,11 @@ RSHIFT4:
 ; 0 PICK must be equivalent to DUP 
         INCW Y 
         SLAW Y
-        LDW XTEMP,X
-        ADDW Y,XTEMP
+        PUSHW X
+        ADDW Y,(1,SP)
         LDW Y,(Y)
         LDW (X),Y
+        _drop 2 
         RET
 
 ;; Memory access
@@ -3365,7 +3295,7 @@ QUIT2:  CALL     QUERY   ;get input
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER BCOMP,COMPO+IMEDD+9,"[COMPILE]"
         CALL     TICKK
-        JP     JSRC
+        JP     COMPI_CALL
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       COMPILE ( -- )
@@ -3376,7 +3306,7 @@ QUIT2:  CALL     QUERY   ;get input
         CALL     RFROM
         CALL     DUPP
         CALL     AT
-        CALL     JSRC    ;compile subroutine
+        CALL     COMPI_CALL    ;compile subroutine
         CALL     CELLP
         ldw y,x 
         ldw y,(y)
@@ -3490,16 +3420,16 @@ LOOP1:
 ;   LOOP run time 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 RT_LOOP:
-        POPW    Y 
-        _stryz  YTEMP 
-        LDW     Y,(1,SP)
+CNTR=3
+LIMIT=5 
+        LDW     Y,(CNTR,sp)
         INCW    Y 
-        LDW (1,sp),y
-        SUBW    Y,(3,SP)
+        LDW     (CNTR,SP),Y 
+        SUBW    Y,(LIMIT,sp)
         NEGW    Y  
         SUBW    X,#CELLL 
         LDW     (X),Y  
-        JP      [YTEMP]
+        RET        
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       +LOOP ( a -- )
@@ -3516,26 +3446,19 @@ RT_LOOP:
 ;  +LOOP runtime 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 RT_PLOOP:
-        POPW Y 
-        _stryz YTEMP 
+CNTR=3
+LIMIT=5 
         LDW     Y,X 
         LDW     Y,(Y)
-        _stryz  XTEMP 
-        LDW     Y,(1,sp)
-        ADDW    Y,XTEMP 
-        LDW     (1,SP),Y 
-        LD      A,(3,SP)
-        _straz  XTEMP 
-        LD      A,(4,SP)
-        _straz  XTEMP+1 
-        CPW     Y,XTEMP 
+        ADDW    Y,(CNTR,sp)        
+        LDW     (CNTR,sp),y 
+        SUBW    Y,(LIMIT,sp)
         JRSLT   2$ 
         CLRW    Y 
         JRA     4$ 
 2$:     LDW     Y,#-1
 4$:     LDW     (X),Y 
-        JP      [YTEMP]
-
+        RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       CASE ( -- 0 )
@@ -3551,10 +3474,11 @@ RT_PLOOP:
 ; push patching address for ENDOF on R:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER OF,2+IMEDD+COMPO,"OF"
+        CALL    ONEP 
         _COMPI OVER
         _COMPI  EQUAL 
         CALL  IFF
-        _COMPI  DROP 
+;       _COMPI  DROP 
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3564,6 +3488,7 @@ RT_PLOOP:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER ENDOF,5+IMEDD+COMPO,"ENDOF"
         CALL ELSEE         
+        CALL SWAPP 
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3572,26 +3497,18 @@ RT_PLOOP:
 ; branch address stored on R: 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER,ENDCASE,7+IMEDD+COMPO,"ENDCASE"
-        CALL    HERE ; check if ENDOF after last OF block 
-        _DOLIT  3 
-        CALL    SUBB 
-        CALL    CAT
-        _DOLIT  JPIMM
-        CALL    EQUAL 
-        _QBRAN  3$  ; last ENDOF missing  
-        _COMPI  DROP 
-        CALL    DEPTH
-        CALL    ZEQUAL 
-        _TBRAN  3$ ; stack empty
-1$:     CALL    QDUP 
-        _TBRAN  2$ 
-        RET 
-2$:     CALL   THENN 
-        _BRAN  1$ 
-3$:     CALL    ABORQ 
-        .byte   19 
-        .ascii  " bad CASE structure"
-        
+        CALL    DUPP 
+        _DOLIT  VAR_BASE 
+        CALL    ULESS 
+        _TBRAN  0$ 
+        CALL    SWAPP 
+0$:
+        CALL    TOR 
+        _BRAN   2$ 
+1$:     CALL    THENN 
+2$:     _DONXT  1$
+        _COMPI  DROP
+        RET  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       BEGIN   ( -- a )
@@ -3834,7 +3751,7 @@ PNAM1:  CALL     STRQP
         CALL     QBRAN
         .word      SCOM1
         JP     EXECU
-SCOM1:  JP     JSRC
+SCOM1:  JP     COMPI_CALL
 SCOM2:  CALL     NUMBQ   ;try to convert to number 
         CALL    QDUP  
         CALL     QBRAN
@@ -3896,37 +3813,7 @@ SCOM2:  CALL     NUMBQ   ;try to convert to number
 ;       CALL,    ( ca -- )
 ;       Compile a subroutine call.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER JSRC,5,^/"CALL,"/
-.if OPTIMIZE 
-;;;;; optimization code ;;;;;;;;;;;;;;;
-        LDW Y,#DROP 
-        LDW YTEMP,Y 
-        LDW Y,X 
-        LDW Y,(Y)
-        CPW Y,YTEMP 
-        JRNE JSRC1         
-; replace CALL DROP BY  ADDW X,#CELLL 
-        ADDW X,#CELLL 
-        _DOLIT ADDWX ; opcode 
-        CALL   CCOMMA 
-        _DOLIT CELLL 
-        JP      COMA 
-JSRC1: ; check for DDROP 
-        LDW Y,#DDROP 
-        LDW YTEMP,Y 
-        LDW Y,X 
-        LDW Y,(Y)
-        CPW Y,YTEMP 
-        JRNE JSRC2 
-; replace CALL DDROP BY ADDW X,#2*CELLL 
-        ADDW X,#CELLL 
-        _DOLIT ADDWX 
-        CALL  CCOMMA 
-        _DOLIT 2*CELLL 
-        JP  COMA 
-JSRC2: 
-;;;;;;;; end optimization code ;;;;;;;;;;        
-.endif        
+        _HEADER COMPI_CALL,5,^/"CALL,"/
         CALL     DOLIT
         .word     CALLL     ;CALL
         CALL     CCOMMA
@@ -4120,12 +4007,11 @@ DOCONST:
 ;-----------------------------------
 ;       _HEADER DO_DCONST,9,"DO-DCONST"
 DO_DCONST:
-    popw y 
-    ldw YTEMP,y 
     subw x,#2*CELLL 
+    ldw y,(1,sp) 
     ldw y,(y)
     ldw (x),y 
-    ldw y,YTEMP 
+    popw y  
     ldw y,(2,y)
     ldw (2,x),y 
     ret 

@@ -1,3 +1,10 @@
+### 2024-02-04 
+
+* Modificéé code pour éliminer utilisation des variables **XTEMP** et **YTEMP** dans [p1Forth.asm](p1Forth.asm).
+
+* Modifié le codes des mots **OF**, **ENDOF**  et **ENDCASE**. 
+
+
 ### 2024-02-03 
 
 * Travail sur **SEE**, le décompilateur de mots définis avec **:**.  

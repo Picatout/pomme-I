@@ -408,6 +408,7 @@ DOLIT:
 	LDW Y,(3,SP)
 	DECW Y
 	JRPL NEX1 ; jump if N=0
+; exit loop 
 	POPW Y
         addw sp,#2
         JP (2,Y)
@@ -554,6 +555,89 @@ EXIT:
         ADDW X,#2*CELLL 
         JP (Y)
 
+;-------------------------------
+; transfert addres on TOS 
+; to farptr 
+;-------------------------------
+psram_adr: ; ( a -- )
+        LDW     Y,X 
+        LDW     Y,(Y) 
+        _clrz   farptr 
+        _stryz  ptr16 
+        ret 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PSRAM@ ( a -- n )
+; read data from spi ram
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PSRAMAT,6,"PSRAM@"
+        CALL    psram_adr 
+        PUSHW   X 
+        LDW     X,#2 
+        LDW     Y,(1,SP)
+        CALL    spi_ram_read 
+        POPW    X 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PSRAM! ( n a -- )
+; write data to spi ram 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PSRAMSTO,6,"PSRAM!"
+        CALL    psram_adr
+        _TDROP 
+        LDW     Y,X 
+        _TDROP 
+        PUSHW   X 
+        LDW     X,#2
+        call    spi_ram_write 
+        POPW    X
+        RET 
+
+
+;--------------------------------
+; set transfert count and 
+; buffer address 
+;--------------------------------
+psram_blk_param: ; ( cnt b -- )
+;; open a slot on SP to save X
+;; will be retreived by caller  
+        LDW     Y,(1,SP) 
+        SUB     SP,#CELLL 
+        LDW     (1,SP),Y 
+        LDW     (3,SP),X ; save X 
+        LDW     X,(2,X) ; cnt 
+        LDW     Y,(3,SP)
+        LDW     Y,(Y)  ; b 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PSRAM-BLK@ ( cnt b a -- )
+; read cnt bytes from spi ram to b 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER,PSRAM_BLK_AT,10,"PSRAM-BLK@"
+        call psram_adr
+        _TDROP 
+        CALL    psram_blk_param
+        call    spi_ram_read 
+        POPW    X 
+        _DDROP 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PSRAM-BLK! ( cnt b a -- )
+; write cnt bytes to spi ram from b 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PSRAM_BLK_STO,10,"PSRAM-BLK!"
+        call psram_adr
+        _TDROP 
+        CALL    psram_blk_param
+        call    spi_ram_write  
+        POPW    X 
+        _DDROP 
+        RET 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       R>      ( -- w )
 ;       Pop return stack to data stack.
@@ -646,9 +730,9 @@ EXIT:
 ;       Copy second stack item to top.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER OVER,4,"OVER"
-        SUBW X,#2
+        SUBW X,#CELLL
         LDW Y,X
-        LDW Y,(4,Y)
+        LDW Y,(2*CELLL,Y)
         LDW (X),Y
         RET     
 

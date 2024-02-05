@@ -33,10 +33,13 @@
 SPI_CS_RAM==0     ; PB0 
 SPI_CS_EEPROM==1   ; PB1 
 
+; IC PARAMETERS 
+ADR_SIZE=2 ; address size in byte 2>23LC512 or 3>23LC1024 
+
 
 ; SPI RAM commands 
 ;----------------------------
-; 23LC1024 
+; 23LCxxxx  
 ; mode set 
 ;  bit7:6 | mode 
 ;  -------|------
@@ -120,7 +123,7 @@ spi_mode_failed: .asciz "failes to set SPI RAM mode\n"
 ;----------------------------
 ; disable SPI peripheral 
 ;----------------------------
-spi_disable:
+spi_disable::
 ; wait spi idle 
 	btjf SPI_SR,#SPI_SR_TXE,. 
 	btjf SPI_SR,#SPI_SR_RXNE,. 
@@ -134,7 +137,7 @@ spi_disable:
 ;------------------------
 ; clear SPI error 
 ;-----------------------
-spi_clear_error:
+spi_clear_error::
 	ld a,#0x78 
 	bcp a,SPI_SR 
 	jreq 1$
@@ -148,7 +151,7 @@ spi_clear_error:
 ; output:
 ;   A     byte received 
 ;----------------------
-spi_send_byte:
+spi_send_byte::
 	push a 
 	call spi_clear_error
 	pop a 
@@ -163,7 +166,7 @@ spi_send_byte:
 ; output:
 ;    A 
 ;------------------------------
-spi_rcv_byte:
+spi_rcv_byte::
 	ld a,#255
 	btjf SPI_SR,#SPI_SR_RXNE,spi_send_byte 
 	ld a,SPI_DR 
@@ -176,7 +179,7 @@ spi_rcv_byte:
 ;  output:
 ;     A     2^bit 
 ;-----------------------------
-create_bit_mask:
+create_bit_mask::
 	push a 
 	ld a,#1 
 	tnz (1,sp)
@@ -194,7 +197,7 @@ create_bit_mask:
 ;   A    channel SPI_CS_RAM || 
 ;                SPI_CS_EEPROM 
 ;--------------------------------
-spi_select_channel:
+spi_select_channel::
 	call create_bit_mask 
 	cpl a  
 	push a 
@@ -210,7 +213,7 @@ spi_select_channel:
 ;   A    channel SPI_CS_RAM ||
 ; 				 SPI_CS_EEPROM 
 ;-------------------------------
-spi_deselect_channel:
+spi_deselect_channel::
 	btjt SPI_SR,#SPI_SR_BSY,.
 	call create_bit_mask 
 	push a 
@@ -225,7 +228,7 @@ spi_deselect_channel:
 ; input:
 ;   A     mode byte 
 ;----------------------------
-spi_ram_set_mode: 
+spi_ram_set_mode:: 
 	push a 
 	ld a,#SPI_CS_RAM 
 	call spi_select_channel
@@ -242,7 +245,7 @@ spi_ram_set_mode:
 ; output:
 ;   A       mode byte 
 ;----------------------------
-spi_ram_read_mode:
+spi_ram_read_mode::
 	ld a,#SPI_CS_RAM 
 	call spi_select_channel
 	ld a,#SPI_RAM_RDMOD 
@@ -261,10 +264,13 @@ spi_ram_read_mode:
 ; input:
 ;   farptr   address 
 ;------------------------------
-spi_send_addr:
+spi_send_addr::
+	ld a,#ADR_SIZE
+	cp a,#2
+	jreq 1$
 	_ldaz farptr 
 	call spi_send_byte 
-	_ldaz ptr16 
+1$:	_ldaz ptr16 
 	call spi_send_byte 
 	_ldaz ptr8 
 	call spi_send_byte 
@@ -277,7 +283,7 @@ spi_send_addr:
 ;   x       count 0=65536
 ;   y       buffer 
 ;----------------------------
-spi_ram_write:
+spi_ram_write::
 	push a 
 	ld a,#SPI_CS_RAM 
 	call spi_select_channel
@@ -301,7 +307,7 @@ spi_ram_write:
 ;   X        count 
 ;   Y        buffer 
 ;-------------------------------
-spi_ram_read:
+spi_ram_read::
 	push a 
 	ld a,#SPI_CS_RAM 
 	call spi_select_channel

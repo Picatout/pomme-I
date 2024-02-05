@@ -1,9 +1,17 @@
 ### 2024-02-04 
 
+* Création des mots Forth
+    * **PSRAM!** **( n a -- )** écriture d'un entier dans la mémoire externe spi ram . 
+    * **PSRAM@** **( a -- n )** lecture d'un entier de la mémoire externe spi ram.
+    * **PSRAM-BLK!** **( cnt b a -- )**  sauvegarde d'un buffer dans la mémoire externe spi ram. 
+    * **PSRAM-BLK@** **( cnt b a -- )**  chargement dans un buffer de plage mémoire de la spi ram.
+
+* Modifié *spi_send_addr* dans [spi.asm](spi.asm) pour tenir compte de la taille de l'adresse différente entre 23LC512 et 23LC1024.
+    * Définie constante **ADR_SIZE**. 
+
 * Modificéé code pour éliminer utilisation des variables **XTEMP** et **YTEMP** dans [p1Forth.asm](p1Forth.asm).
 
 * Modifié le codes des mots **OF**, **ENDOF**  et **ENDCASE**. 
-
 
 ### 2024-02-03 
 

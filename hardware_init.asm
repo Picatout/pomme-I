@@ -292,6 +292,7 @@ cold_start:
 	call uart_init
 	call timer4_init ; msec ticks timer 
 	call timer2_init ; tone generator 	
+	call spi_enable  ; enable spi for external RAM and EEPROM  
 	rim ; enable interrupts 
 	mov base,#10
 	_clrz sys_flags 

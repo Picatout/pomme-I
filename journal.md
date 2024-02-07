@@ -16,6 +16,8 @@
 
 * Modification à la routine *tone*  pour éliminer l'utilisation des fonctions de arithm16.asm. Une division de udiv16_8 est effectuée au sein de la routine tone.
 
+* Modifié la routine *uart_init* pour éliminer l'utilisation des fonctions aritmétique 16 bits.
+
 ### 2024-02-04 
 
 * Création des mots Forth

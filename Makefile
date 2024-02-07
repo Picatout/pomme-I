@@ -11,9 +11,9 @@ INC=../inc/
 INCLUDES=$(BOARD_INC) $(INC)ascii.inc $(INC)gen_macros.inc cmd_idx.inc\
          app_macros.inc arithm16_macros.inc 
 BUILD=build/
-KERNEL=hardware_init.asm p1Kernel.asm arithm16.asm terminal.asm std_func.asm spi.asm 
+KERNEL=hardware_init.asm p1Kernel.asm arithm16.asm terminal.asm std_func.asm spi.asm files.asm 
 MONITOR=p1Monitor.asm  
-BASIC=p1Basic/code_address.asm p1Basic/compiler.asm p1Basic/decompiler.asm p1Basic/files.asm p1Basic/error.asm p1Basic/p1Basic.asm 
+BASIC=p1Basic/code_address.asm p1Basic/compiler.asm p1Basic/decompiler.asm p1Basic/error.asm p1Basic/p1Basic.asm 
 FORTH=p1Forth/p1Forth.asm
 OBJ=$(BUILD)$(BOARD)/p1Kernel.rel $(BUILD)p1Monitor.rel $(BUILD)p1Basic.rel $(BUILD)p1Forth.rel 
 FLASH=stm8flash

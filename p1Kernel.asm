@@ -239,7 +239,11 @@ beep_1khz::
 ;---------------------
 	DIVR=1  ; divisor 
 	VSIZE=2 
-FR_TIM2=250000 ;16M/64
+.if HSI ; internal oscillator used 
+FR_TIM2=250000 ;16Mhz/64
+.else 
+FR_TIM2=375000 ;24Mhz/64
+.endif 
 tone:: 
 	_vars VSIZE 
 	_strxz tone_ms 

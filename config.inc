@@ -14,16 +14,18 @@ SYS_SIZE=0x4000 ; flash reserved for system 16KB
 FS_BASE==0xC000 ; file system base address 49152 
 FS_SIZE==0xC000 ; file system size 49152 bytes  48KB 
 
-APP_DATA_ORG=0x30
+APP_DATA_ORG=0x60
 
 HSI=1 ; set this to 1 if using internal high speed oscillator  
 .if HSI 
+FMSTR=16
 HSE=0
 .else
+FMSTR=24 
 HSE=1  
 .endif 
 
-FMSTR=16 ; master clock frequency in Mhz 
+
 
 ; boards list
 ; set selected board to 1  
@@ -54,4 +56,5 @@ NUCLEO_8S207K8=1
 	.include "inc/gen_macros.inc" 
 	.include "app_macros.inc" 
     .include "arithm16_macros.inc" 
+    .include "inc/files.inc"
 

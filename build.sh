@@ -10,11 +10,11 @@ if [ $1 == "s208" ]; then
     then 
         mkdir "build/stm8s208rb"
     fi 
-    make -fnucleo_8s208.mk 
+    make -fnucleo_8s208.mk -B  
     if [[ ! -z $2 && ($2 == "flash") ]]; then 
-        make -fnucleo_8s208.mk && make -fnucleo_8s208.mk flash 
+        make -fnucleo_8s208.mk -B && make -fnucleo_8s208.mk flash 
     else 
-        make -fnucleo_8s208.mk
+        make -fnucleo_8s208.mk -B
     fi 
 elif [ $1 == "s207" ]; then 
     if [ ! -d "build/stm8s207k8" ] 
@@ -22,9 +22,9 @@ elif [ $1 == "s207" ]; then
         mkdir "build/stm8s207k8"
     fi 
     if [[ ! -z $2 && ($2 == "flash") ]]; then 
-        make -fnucleo_8s207.mk && make -fnucleo_8s207.mk flash 
+        make -fnucleo_8s207.mk -B && make -fnucleo_8s207.mk flash 
     else 
-        make -fnucleo_8s207.mk
+        make -fnucleo_8s207.mk -B 
     fi 
 fi
 

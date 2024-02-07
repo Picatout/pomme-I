@@ -116,38 +116,19 @@ UartRxHandler: ; console receive char
 ;   none
 ;---------------------------------------------
 BAUD_RATE=115200
-	N1=1
-	N2=N1+INT_SIZE 
-	VSIZE=N2+2
+.if HSI 
+BRR1_VAL=8 
+BRR2_VAL=0xB
+.else 
+BRR1_VAL=0xD 
+BRR2_VAL=0 
+.endif 
 uart_init:
-	_vars VSIZE 
 ; BRR value = Fmaster/115200 
-	clrw x 
-	_ldaz fmstr 
-	rlwa x 
-	ldw y,#10000
-	call umstar
-	_i16_store N2   
-	ldw x,y 
-	_i16_store N1 
-	ldw x,#BAUD_RATE/100
-	call udiv32_16 ; X quotient, Y  remainder 
-	cpw y,#BAUD_RATE/200
-	jrmi 1$ 
-	incw x
-1$:  
-; // brr value in X
-	ld a,#16 
-	div x,a 
-	push a  ; least nibble of BRR1 
-	rlwa x 
-	swap a  ; high nibble of BRR1 
-	or a,(1,sp)
-	_drop 1 
+	ld a,#BRR2_VAL
 	ld UART_BRR2,a 
-	ld a,xh 
+	ld a,#BRR1_VAL  
 	ld UART_BRR1,a
-3$:
     clr UART_DR
 	mov UART_CR2,#((1<<UART_CR2_TEN)|(1<<UART_CR2_REN)|(1<<UART_CR2_RIEN));
 	bset UART_CR2,#UART_CR2_SBK
@@ -159,7 +140,6 @@ uart_init:
 	ldw x,#uart_putc 
 	_strxz out 
 	bset UART,#UART_CR1_PIEN
-	_drop VSIZE 
 	ret
 
 ;---------------------------

@@ -159,8 +159,6 @@ reset_basic:
 	ret 
 
 P1BASIC:: 
-; enable SPI for file system 
-	call spi_enable 
 ; reset hardware stack 
     ldw x,#STACK_EMPTY 
     ldw sp,x 
@@ -2543,47 +2541,42 @@ cmd_save:
 0$:
 	ldw x,progend  
 	subw x,lomem 
-	jreq 6$ 
+	jreq 1$ 
 	_next_token 
 	cp a,#QUOTE_IDX
-	jreq 1$ 
+	jreq 2$ 
 	jp syntax_error 
-1$: ldw x,y 
-	call skip_string 
-	pushw x 
-	call search_file 
-	tnz a 
-	jreq 2$
-	ldw x,#file_exist 
-	call puts 
-	jra 9$ 
-2$:
-	call search_free
-	tnz a 
-	jrne 4$ 
+1$:
+    ldw x,#no_prog 
+	call puts
+	_next  	 
+2$: 
+	ldw x,y
+	call skip_string  
+	pushw y 
+	call strlen
+	cp a,#FNAME_MAX_LEN
+	jrmi 3$
+	ld a,#FNAME_MAX_LEN 
+3$: push a 
+	ldw y,x 
+	ldw x,#fcb+FCB_NAME 
+	_clrz acc16
+	_straz acc8 
+	call move
+	pop a 
+	call fname_padding   
+	ldw x,lomem 
+	_strxz fcb+FCB_BUFFER 
 	ldw x,progend 
-	subw x,lomem 
-	call reclaim_space 
-	jreq 8$ 
-4$: 
-	popw x 
+	subw x,lomem
+	_strxz fcb+FCB_DATA_SIZE 
+	ld a,#FILE_SAVE 
+	_straz fcb+FCB_OPERATION
 	call save_file
-	jra 9$ 
-6$: 
-	ldw x,#no_prog  
-	call puts 
-	jra 9$ 
-8$: 
-	popw x 
-	ldw x,#no_space 
-	call puts 
-9$:
-	clr (y)
+9$: popw y 
 	_next 
-
-file_exist: .asciz "Duplicate name.\n"
 no_prog: .asciz "No program in RAM.\n"
-no_space: .asciz "File system full.\n" 
 
 ;-----------------------
 ;BASIC: LOAD "fname"
@@ -2628,54 +2621,15 @@ basic_load_file:
 ;---------------------
 ; BASIC: DIR 
 ; list programs saved 
-; in flash 
+; in 25LC1024  
 ;--------------------
 	FCNT=1
 cmd_dir:
 	btjf flags,#FRUN,0$
 	_next 
 0$:
-	push #0
-	push #0 
-	call first_file 
-1$:	 
-	tnz a 
-	jreq 9$ 
-	ldw x,(FCNT,sp)
-	incw x 
-	ldw (FCNT,sp),x
-	ldw x,#file_header+FILE_NAME_FIELD
-	pushw x 
-	call puts
-	popw x 
-	call strlen
-	push a 
-	push #0
-	ldw x,#FNAME_MAX_LEN 
-	subw x,(1,sp) 
-	call spaces 
-	_drop 2  
-	ldw x,#file_header+FILE_SIZE_FIELD
-	ldw x,(x)
-	call print_int
-	ldw x,#file_size 
-	call puts 
-	ldw x,#file_header 
-	call skip_to_next 
-	call next_file 
-	jra 1$  
-9$:
-	call new_line
-	popw x 	
-	call print_int
-	ldw x,#files_count 
-	call puts 
-	clr (y)
+	call list_files 
 	_next 
-
-file_size: .asciz "bytes\n"
-files_count: .asciz "files"
-
 
 
 

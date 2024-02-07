@@ -1,0 +1,54 @@
+;;
+; Copyright Jacques Deschênes 2023,2024  
+; This file is part of pomme-I 
+;
+;     pomme-I is free software: you can redistribute it and/or modify
+;     it under the terms of the GNU General Public License as published by
+;     the Free Software Foundation, either version 3 of the License, or
+;     (at your option) any later version.
+;
+;     pomme-I is distributed in the hope that it will be useful,
+;     but WITHOUT ANY WARRANTY; without even the implied warranty of
+;     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;     GNU General Public License for more details.
+;
+;     You should have received a copy of the GNU General Public License
+;     along with pomme-I.  If not, see <http://www.gnu.org/licenses/>.
+;;
+
+;---------------------------------
+;  files.asm macros and constants 
+;---------------------------------
+
+USED="PI"  ; sector used by pomme-I file.
+ERASED="XX" ; erased file, replace USED. 
+FILE_SIGN_FIELD = 0 ; signature offset 2 bytes 
+FILE_SIZE_FIELD = 2 ; size offset 2 bytes 
+FILE_NAME_FIELD = 4 ; file name 12 byte 
+FILE_HEADER_SIZE = 16 ; bytes 
+FILE_DATA = FILE_HEADER_SIZE ; data offset 
+FSECTOR_SIZE =256 ; file sector size  
+FNAME_MAX_LEN =12 
+
+; file operations
+FILE_NOP=0 ; no operation  
+FILE_SAVE=1 ; save file 
+FILE_LOAD=2  ; load file 
+FILE_ERASE=3  ; erase file 
+FILE_LIST=4 ;  list files stored
+
+; file operation status 
+FILE_OP_SUCCESS=-1 ; 
+FILE_OP_FAILED=0 ; failed unknown cause 
+FILE_OP_SPACE=1 ; not enough space 
+FILE_OP_CLASH=2 ; name clash 
+FILE_OP_NOT_FOUND=3 ; file not found 
+
+; files control block fields 
+FCB_DATA_SIZE=0 ; file data size, 2 BYTES 
+FCB_NAME=2 ; 12 BYTES 
+FCB_BUFFER=FCB_NAME+FNAME_MAX_LEN ; address data buffer, 2 BYTES 
+FCB_OPERATION=FCB_BUFFER+2 ; file operation 1 BYTE 
+FCB_OP_FLAG=FCB_OPERATION+1 ; operation status flags 
+FCB_RESERVED=FCB_OP_FLAG+1 ; reserved field 2 BYTES 
+FCB_SIZE=FCB_RESERVED+2 ;  20 BYTES 

@@ -61,6 +61,8 @@ farptr:: .blkb 1 ; 24 bits pointer used by file system, upper-byte
 ptr16::  .blkb 1 ; 16 bits pointer , farptr high-byte 
 ptr8::   .blkb 1 ; 8 bits pointer, farptr low-byte  
 trap_ret:: .blkw 1 ; trap return address 
+fcb:: .blkb FCB_SIZE  ; file control block structure 
+file_header:: .blkb FILE_HEADER_SIZE  
 kvars_end:: 
 SYS_VARS_SIZE==kvars_end-ticks   
 

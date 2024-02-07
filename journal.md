@@ -1,8 +1,8 @@
 ### 2024-02-06
 
-* Modification à [p1Kernel.asm] pour corrigé bogue régressif.
+* Modification à [p1Kernel.asm](p1Kernel.asm) pour corriger bogue régressif.
 
-* Modifiation à [p1Kernel.asm] pour permettre à un programme lancé avec la commande **R** de revenir dans le moniteur en terminant par une instruction **RET**.
+* Modifiation à [p1Monitor.asm](p1Monitor.asm) pour permettre à un programme lancé avec la commande **R** de revenir dans le moniteur en terminant par une instruction **RET**.
 
 * Modification à la routine *tone**  pour éliminer l'utiliation des fonctions de arithm16.asm. Une division de udiv16_8 est effectuée au sein de la routine tone.
 

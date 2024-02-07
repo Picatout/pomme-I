@@ -4,7 +4,7 @@
 
 * Modifiation à [p1Monitor.asm](p1Monitor.asm) pour permettre à un programme lancé avec la commande **R** de revenir dans le moniteur en terminant par une instruction **RET**.
 
-* Modification à la routine *tone*  pour éliminer l'utiliation des fonctions de arithm16.asm. Une division de udiv16_8 est effectuée au sein de la routine tone.
+* Modification à la routine *tone*  pour éliminer l'utilisation des fonctions de arithm16.asm. Une division de udiv16_8 est effectuée au sein de la routine tone.
 
 ### 2024-02-04 
 

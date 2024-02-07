@@ -1,3 +1,13 @@
+### 2024-02-07 
+
+* Déplacer [files.asm](files.asm) dans le noyaux et le rendre générique.
+
+* Modifié les mots de **p1Forth** pour accepter des adresses supérieurs à 65536 pour atteintre toute la plage d'adressage du **23LC1024**.
+    * **PSRAM!** **( n d -- )** écriture d'un entier dans la mémoire externe spi ram . 
+    * **PSRAM@** **( d -- n )** lecture d'un entier de la mémoire externe spi ram.
+    * **PSRAM-BLK!** **( cnt b d -- )**  sauvegarde d'un buffer dans la mémoire externe spi ram. 
+    * **PSRAM-BLK@** **( cnt b d -- )**  chargement dans un buffer de plage mémoire de la spi ram.
+
 ### 2024-02-06
 
 * Modification à [p1Kernel.asm](p1Kernel.asm) pour corriger bogue régressif.

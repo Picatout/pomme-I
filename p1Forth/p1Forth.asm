@@ -559,19 +559,21 @@ EXIT:
 ; transfert addres on TOS 
 ; to farptr 
 ;-------------------------------
-psram_adr: ; ( a -- )
+psram_adr: ; ( d -- )
         LDW     Y,X 
-        LDW     Y,(Y) 
-        _clrz   farptr 
+        LD     A,(1,Y) 
+        _straz farptr 
+        LDW     Y,(2,Y) 
         _stryz  ptr16 
         ret 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM@ ( a -- n )
+;       PSRAM@ ( d -- n )
 ; read data from spi ram
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER PSRAMAT,6,"PSRAM@"
         CALL    psram_adr 
+        _TDROP 
         PUSHW   X 
         LDW     X,#2 
         LDW     Y,(1,SP)
@@ -580,12 +582,12 @@ psram_adr: ; ( a -- )
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM! ( n a -- )
+;       PSRAM! ( n d -- )
 ; write data to spi ram 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER PSRAMSTO,6,"PSRAM!"
         CALL    psram_adr
-        _TDROP 
+        _DDROP 
         LDW     Y,X 
         _TDROP 
         PUSHW   X 
@@ -612,12 +614,12 @@ psram_blk_param: ; ( cnt b -- )
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM-BLK@ ( cnt b a -- )
+;       PSRAM-BLK@ ( cnt b d -- )
 ; read cnt bytes from spi ram to b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER,PSRAM_BLK_AT,10,"PSRAM-BLK@"
         call psram_adr
-        _TDROP 
+        _DDROP 
         CALL    psram_blk_param
         call    spi_ram_read 
         POPW    X 
@@ -625,12 +627,12 @@ psram_blk_param: ; ( cnt b -- )
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM-BLK! ( cnt b a -- )
+;       PSRAM-BLK! ( cnt b d -- )
 ; write cnt bytes to spi ram from b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER PSRAM_BLK_STO,10,"PSRAM-BLK!"
         call psram_adr
-        _TDROP 
+        _DDROP 
         CALL    psram_blk_param
         call    spi_ram_write  
         POPW    X 

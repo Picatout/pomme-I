@@ -34,7 +34,7 @@ SPI_CS_RAM==0     ; PB0
 SPI_CS_EEPROM==1   ; PB1 
 
 ; IC PARAMETERS 
-ADR_SIZE=2 ; address size in byte 2>23LC512 or 3>23LC1024 
+ADR_SIZE=3 ; address size in byte 2>23LC512 or 3>23LC1024 
 
 
 ; SPI RAM commands 

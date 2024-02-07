@@ -61,7 +61,7 @@ MON_REV=2
 
 ; Modeled on Apple I monitor Written by Steve Wozniak 
 
-mon_str: .asciz "pomme I monitor "
+mon_str: .asciz "\npomme I monitor "
 mon_copyright: .asciz " Jacques Deschenes (c) 2023,24\n" 
 
 GO_BASIC: 
@@ -80,9 +80,9 @@ WOZMON::
     _drop 3
 GETLINE: 
     ld a,#CR 
-    call putc 
+    call uart_putc 
     ld a,#'# 
-    call putc
+    call uart_putc
     clrw y 
     jra NEXTCHAR 
 BACKSPACE:
@@ -91,7 +91,7 @@ BACKSPACE:
     call bksp 
     decw y 
 NEXTCHAR:
-    call getc
+    call uart_getc
     cp a,#BS  
     jreq BACKSPACE 
     cp a,#ESC 
@@ -108,7 +108,7 @@ NEXTCHAR:
     and a,#0XDF  
 UPPER: ; there is no lower case letter in buffer 
     ld (tib,y),a 
-    call putc
+    call uart_putc
     cp a,#CR 
     jreq EOL
     incw y 
@@ -178,7 +178,8 @@ TONEXTITEM:
     jra NEXTITEM 
 RUN:
     _ldxz XAMADR 
-    jp (x)
+    call (x)
+    jp WOZMON
 XAM_BLOCK:
     _strxz LAST 
     _ldxz XAMADR
@@ -187,16 +188,16 @@ XAM_BLOCK:
 NXTPRNT:
     jrne PRDATA 
     ld a,#CR 
-    call putc 
+    call uart_putc 
     ld a,xh 
     call PRBYTE 
     ld a,xl 
     call PRBYTE 
     ld a,#': 
-    call putc 
+    call uart_putc 
 PRDATA:
     ld a,#SPACE 
-    call putc
+    call uart_putc
     ld a,(x)
     call PRBYTE
     incw x
@@ -212,7 +213,7 @@ PRBYTE:
     call print_hex
     ret 
 ECHO:
-    call putc 
+    call uart_putc 
     RET 
 
 ;----------------------------
@@ -247,12 +248,12 @@ r_test:
 ascii:
     ld a,#SPACE
 1$:
-    call putc 
+    call uart_putc 
     inc a 
     cp a,#127 
     jrmi 1$
     ld a,#CR 
-    call putc 
+    call uart_putc 
 ; if key exit 
     btjf UART_SR,#UART_SR_RXNE,ascii
     ld a,UART_DR 

@@ -108,15 +108,11 @@ kernel_show_version:
     .endm 
 
 TrapHandler::
-; enable interrupts
-; set I1:I0==1:0
-; i.e. main level  
-    push cc 
-    pop a 
-    and a,#~8
-    or a,#32
-    push a 
-    pop cc 
+    ldw x,(8,sp)
+    _strxz trap_ret 
+    ldw x,#syscall_handler 
+    ldw (8,sp),x 
+    iret 
 
 ;------------------------
 ; kernel services 
@@ -186,10 +182,10 @@ syscall_handler:
     call set_seed 
     jra syscall_exit 
 14$: 
-
 ; bad codes ignored 
-syscall_exit:
-iret 
+
+syscall_exit: ; jump after trap instruction 
+    jp [trap_ret]
 
 
 ;------------------------------
@@ -241,22 +237,27 @@ beep_1khz::
 ;   Y   frequency 
 ;   x   duration 
 ;---------------------
-	DIVDHI=1   ; dividend 31..16 
-	DIVDLO=DIVDHI+INT_SIZE ; dividend 15..0 
-	DIVR=DIVDLO+INT_SIZE  ; divisor 
-	VSIZE=3*INT_SIZE  
+	DIVR=1  ; divisor 
+	VSIZE=2 
+FR_TIM2=250000 ;16M/64
 tone:: 
 	_vars VSIZE 
 	_strxz tone_ms 
-	bset sys_flags,#FSYS_TONE    
 	ldw (DIVR,sp),y  ; divisor  
-	ldw y,#fmstr 
-	ldw x,#15625 ; ftimer=fmstr*1e6/64
-	call umstar    ; x product 15..0 , y=product 31..16 
-	_i16_store DIVDLO  
-	ldw (DIVDHI,sp),y 
-	_i16_fetch DIVR ; DIVR=freq audio   
-	call udiv32_16 
+; FR_TIM2/frequency 
+	ldw y,#FR_TIM2>>16
+    ldw x,#FR_TIM2 
+    ld a,#17
+1$: subw y,(DIVR,sp)
+    ccf 
+    jrc 2$
+    addw y,(DIVR,sp)
+    rcf 
+2$:     
+    rlcw x 
+    rlcw y 
+    dec a 
+    jrne 1$
 	ld a,xh 
 	ld TIM2_ARRH,a 
 	ld a,xl 
@@ -270,9 +271,10 @@ tone::
 	bset TIM2_CCER1,#TIM2_CCER1_CC1E
 	bset TIM2_CR1,#TIM2_CR1_CEN
 	bset TIM2_EGR,#TIM2_EGR_UG 	
-0$: ; wait end of tone 
+	bset sys_flags,#FSYS_TONE    
+6$: ; wait end of tone 
     wfi 
-    btjt sys_flags,#FSYS_TONE ,0$    
+    btjt sys_flags,#FSYS_TONE ,6$    
 tone_off: 
 	bres TIM2_CCER1,#TIM2_CCER1_CC1E
 	bres TIM2_CR1,#TIM2_CR1_CEN 

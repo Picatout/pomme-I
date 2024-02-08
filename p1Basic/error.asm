@@ -36,6 +36,7 @@ err_msg_idx:
 	_err_entry err_retype, ERR_RETYPE 
 	_err_entry err_prog_only, ERR_PROG_ONLY  
 	_err_entry err_div0, ERR_DIV0 
+	_err_entry err_no_prog, ERR_NO_PROG 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; error messages strings table 
@@ -60,6 +61,7 @@ err_string: .asciz "STRING"
 err_retype: .asciz "RETYPE LINE" 
 err_prog_only: .asciz "PROGRAM ONLY" 
 err_div0: .asciz "DIV BY 0" 
+err_no_prog: .asciz "no program to save" 
 
 ;-------------------------------------
 rt_msg: .asciz "\nrun time error, "

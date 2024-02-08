@@ -1,5 +1,5 @@
 ;;
-; Copyright Jacques Deschênes 2023  
+; Copyright Jacques Deschênes 2023,24  
 ; This file is part of pomme-1 
 ;
 ;     pomme-1 is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
 
 ;    .include "config.inc" 
 
+    .include "inc/p1Kernel.inc" 
+    
 ;-----------------------
 ; a little kernel 
 ; to access TERMIOS 
@@ -29,7 +31,7 @@
 
 KERNEL_MAJOR = 1
 KERNEL_MINOR = 0 
-KERNEL_REV = 2 
+KERNEL_REV = 3
 
 kernel_name: .asciz "p1Kernel " 
 kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"
@@ -44,53 +46,6 @@ kernel_show_version:
     call app_info 
     _drop 3 
     ret 
-
-;---------------------------------------------
-;  kernel functions table 
-;  functions code is passed in A 
-;  parameters are passed in X,Y
-;  output returned in A,X,Y,CC  
-;
-;  code |  function      | input    |  output
-;  -----|----------------|----------|---------
-;    0  | reset system   | none     | none 
-;    1  | ticks          | none     | X=msec ticker 
-;    2  | putchar        | X=char   | none 
-;    3  | getchar        | none     | A=char
-;    4  | querychar      | none     | A=0,-1
-;    5  | clr_screen     | none     | none 
-;    6  | delback        | none     | none 
-;    7  | getline        | xl=buflen | A= line length
-;       |                | xh=lnlen  |  
-;       |                | y=bufadr | 
-;    8  | puts           | X=*str   | none 
-;    9  | print_int      | X=int16  | none 
-;       |                | A=unsigned| A=string length 
-;    10 | set timer      | X=value  | none 
-;   11  | check time out | none     | A=0|-1 
-;   12  | génère une     | X=msec   | 
-;       | tonalité audio | Y=Freq   | none
-;   13  | stop tone      |  none    | none
-;   14  | get random #   | none     | X = random value 
-;   15  | seed prgn      | X=param  | none  
-;----------------------------------------------
-; syscall codes  
-; global constants 
-    SYS_RST==0
-    SYS_TICKS=1 
-    PUTC==2
-    GETC==3 
-    QCHAR==4
-    CLS==5
-    DELBK==6
-    GETLN==7 
-    PRT_STR==8
-    PRT_INT==9 
-    SET_TIMER==10
-    CHK_TIMOUT==11 
-    START_TONE==12 
-    GET_RND==13
-    SEED_PRNG==14 
 
 ;;-------------------------------
     .area CODE

@@ -2,7 +2,7 @@
 
 Après le projet [stm8_wozmon](https://github.com/picatout/stm8_wozmon) j'ai décidé de poursuivre sur ma lancé en traduisant le code source assembleur du **Integer BASIC** de Steve Wozniak dans le but de l'assembler pour la carte NUCLEO-8s207k8.  Une fois le projet complété on aura donc sur la carte **NUCLEO-8S207K8** le **Wozmon** et **l'Integer BASIC**. Cet ordinateur **pomme I** communiquera avec l'utilisateur via un émulateur de terminal sur le PC.
 
-
+[montage du circuit](docs/montage-du-circuit.pdf)
 
 <hr>
 J'ai trouvé sur [github](https://github.com) le projet [a1basic](https://github.com/brouhaha/a1basic/). Le code source est pour le 6502 et pour un assembleur différent de celui que j'utilise. Cependant je vais l'adapter pour le **STM8** et l'assembleur **sdasstm8**. 

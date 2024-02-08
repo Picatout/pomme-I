@@ -69,27 +69,34 @@ file_op::
 file_bad_op: .asciz "bad file operation code\r"
 
 ;----------------------
-; pad file name field 
-; with space
-;     A     strlen 
-;---------------------
-fname_padding::
-	push a 
-	push #0 
-	ldw x,#fcb+FCB_NAME
-	addw x,(1,sp)
-1$:	
-	ld a,#FNAME_MAX_LEN
-	cp a,(2,sp)
-	jreq 9$ 
-	ld a,#SPACE 
-	ld (x),a 
+; copy .asciz name 
+; to fcb->FILE_NAME_FIELD
+; input:
+;     X   *.asciz name 
+;-------------------------
+name_to_fcb::
+	pushw y 
+	push #FNAME_MAX_LEN 
+	_ldyz #fcb+FILE_NAME_FIELD
+1$:	ld a,(x)
+	jreq 2$
+	ld (y),a 
+	incw y 
 	incw x 
-	inc (2,sp)
-	jra 1$
-9$:	_drop 2 
+	dec (1,sp)
+	jrne 1$ 
+; pad with SPACE 	
+2$: ld a,#SPACE 
+	tnz (1,sp)
+	jreq 4$ 
+3$: ld (y),a 
+	incw y 
+	dec (1,sp)
+	jrne 3$
+4$:
+	_drop 1 
+	popw y 
 	ret 
-
 
 ;----------------------------
 ; compare name at *X 
@@ -274,10 +281,10 @@ load_file::
 	TO_WRITE=1
 	DONE=TO_WRITE+2
 	FNAME=DONE+2 
-	XSAVE=FNAME
+	XSAVE=FNAME+2
 	YSAVE=XSAVE+2 
 	VSIZE=YSAVE+1
-save_file::
+save_file:
 	_vars VSIZE 
 	ldw (YSAVE,sp),y 
 ; check if file exist 
@@ -288,7 +295,7 @@ save_file::
 	call search_file 
 	jreq 1$
 	ld a,#FILE_OP_CLASH 
-	_straz fcb+FCB_OP_FLAG 
+	_straz fcb+FCB_OP_STATUS 
 	ldw x,#file_exist 
 	jra 9$ 
 1$:	

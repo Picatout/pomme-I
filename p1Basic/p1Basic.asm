@@ -2547,25 +2547,11 @@ cmd_save:
 	jreq 2$ 
 	jp syntax_error 
 1$:
-    ldw x,#no_prog 
-	call puts
-	_next  	 
+    ld a,#ERR_NO_PROG
+	jp syntax_error
 2$: 
 	ldw x,y
-	call skip_string  
-	pushw y 
-	call strlen
-	cp a,#FNAME_MAX_LEN
-	jrmi 3$
-	ld a,#FNAME_MAX_LEN 
-3$: push a 
-	ldw y,x 
-	ldw x,#fcb+FCB_NAME 
-	_clrz acc16
-	_straz acc8 
-	call move
-	pop a 
-	call fname_padding   
+	call name_to_fcb
 	ldw x,lomem 
 	_strxz fcb+FCB_BUFFER 
 	ldw x,progend 
@@ -2573,10 +2559,9 @@ cmd_save:
 	_strxz fcb+FCB_DATA_SIZE 
 	ld a,#FILE_SAVE 
 	_straz fcb+FCB_OPERATION
-	call save_file
+	call file_op 
 9$: popw y 
 	_next 
-no_prog: .asciz "No program in RAM.\n"
 
 ;-----------------------
 ;BASIC: LOAD "fname"

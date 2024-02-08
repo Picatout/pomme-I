@@ -61,8 +61,14 @@ farptr:: .blkb 1 ; 24 bits pointer used by file system, upper-byte
 ptr16::  .blkb 1 ; 16 bits pointer , farptr high-byte 
 ptr8::   .blkb 1 ; 8 bits pointer, farptr low-byte  
 trap_ret:: .blkw 1 ; trap return address 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; keep these 2 variables in this order 
+; file_header share first 3 fields of fcb
+; see inc/files.inc 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+file_header::   
+file_sign:: .blkw 1 ; file signature 
 fcb:: .blkb FCB_SIZE  ; file control block structure 
-file_header:: .blkb FILE_HEADER_SIZE  
 kvars_end:: 
 SYS_VARS_SIZE==kvars_end-ticks   
 
@@ -258,14 +264,18 @@ set_int_priority::
 ;  initialization entry point 
 ;-------------------------------------
 cold_start:
-;at reset stack pointer is at RAM_END  
-; clear all ram
-	ldw x,sp 
-.if 0	
-0$: clr (x)
+;empty stack
+	ldw x,#RAM_SIZE-1 
+	ldw sp,x 
+	ld a,RST_SR 
+	and a,#(1<<RST_SR_ILLOPF)|(1<<RST_SR_WWDGF)
+	jrne 1$
+0$: ; clear all ram
+	clr (x)
 	decw x 
 	jrne 0$
-.endif 	
+1$: 
+	clr RST_SR 
 ; activate pull up on all inputs 
 	ld a,#255 
 	ld PA_CR1,a 
@@ -308,7 +318,7 @@ cold_start:
     call kernel_show_version  	
 	jp WOZMON
 
-.if 1
+.if 0
 	bset sys_flags,#FSYS_UPPER 
 call new_line 	
 test: ; test compiler 

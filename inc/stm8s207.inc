@@ -316,6 +316,11 @@ PI = 40
 
 ; Reset Status
  RST_SR  = (0x50B3)
+ RST_SR_EMCF = BIT4
+ RST_SR_SWIMF = BIT3 
+ RST_SR_ILLOPF = BIT2 
+ RST_SR_IWDGF = BIT1 
+ RST_SR_WWDGF = BIT0 
 
 ; Clock Registers
  CLK_ICKR  = (0x50c0)

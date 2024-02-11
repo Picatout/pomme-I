@@ -31,7 +31,7 @@
 
 KERNEL_MAJOR = 1
 KERNEL_MINOR = 0 
-KERNEL_REV = 3
+KERNEL_REV = 4
 
 kernel_name: .asciz "p1Kernel " 
 kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"

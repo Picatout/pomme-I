@@ -116,6 +116,7 @@ UartRxHandler: ; console receive char
 ;   none
 ;---------------------------------------------
 BAUD_RATE=115200
+; BRR value = Fmaster/115200 
 .if HSI 
 BRR1_VAL=8 
 BRR2_VAL=0xB
@@ -124,7 +125,6 @@ BRR1_VAL=0xD
 BRR2_VAL=0 
 .endif 
 uart_init:
-; BRR value = Fmaster/115200 
 	ld a,#BRR2_VAL
 	ld UART_BRR2,a 
 	ld a,#BRR1_VAL  
@@ -132,15 +132,22 @@ uart_init:
     clr UART_DR
 	mov UART_CR2,#((1<<UART_CR2_TEN)|(1<<UART_CR2_REN)|(1<<UART_CR2_RIEN));
 	bset UART_CR2,#UART_CR2_SBK
-    btjf UART_SR,#UART_SR_TC,.
+;    btjf UART_SR,#UART_SR_TC,.
     clr rx1_head 
 	clr rx1_tail
-	clrw x
+	ldw x,#ctrl_c_do_nothing 
 	_strxz ctrl_c_vector
 	ldw x,#uart_putc 
 	_strxz out 
 	bset UART,#UART_CR1_PIEN
 	ret
+
+;-----------------------
+; default CTRL+C 
+; response 
+;-----------------------
+ctrl_c_do_nothing:
+	ret 
 
 ;---------------------------
 ;  clear rx1_queue 

@@ -69,6 +69,8 @@ GO_BASIC:
     jp P1BASIC 
 GO_FORTH:
     jp forth_init 
+FORMAT:
+    call erase_all
 WOZMON:: 
     ldw x,#mon_str
     ldw y,#mon_copyright 
@@ -98,6 +100,8 @@ NEXTCHAR:
     jreq GETLINE ; rejected characters cancel input, start over  
     cp a,#CTRL_B 
     jreq GO_BASIC 
+    cp a,#CTRL_E 
+    jreq FORMAT 
     cp a,#CTRL_F
     jreq GO_FORTH 
     cp a,#'`

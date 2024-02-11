@@ -55,9 +55,13 @@ file_op::
 	call erase_file 
 	jra 9$ 
 3$: cp a,#FILE_LIST 
-	jrne 8$ 
+	jrne 4$ 
 	call list_files 
-	jra 9$ 
+	jra 9$
+4$: cp a,#FILE_ERASE_ALL
+	jrne 8$
+	call erase_all
+	jra 9$  	 
 8$: 
 	pushw x 
 	ldw x,#file_bad_op 
@@ -72,39 +76,41 @@ file_bad_op: .asciz "bad file operation code\r"
 ; copy .asciz name 
 ; to fcb->FILE_NAME_FIELD
 ; input:
-;     X   *.asciz name 
+;     X  *FCB
+;     Y  *.asciz name 
+; output:
+;     X  *FCB    
 ;-------------------------
 name_to_fcb::
-	pushw y 
+	pushw x 
 	push #FNAME_MAX_LEN 
-	_ldyz #fcb+FILE_NAME_FIELD
-1$:	ld a,(x)
+	addw x, #FCB_NAME
+1$:	ld a,(y)
 	jreq 2$
-	ld (y),a 
+	ld (X),a 
 	incw y 
 	incw x 
 	dec (1,sp)
-	jrne 1$ 
+	jrne 1$
+	jra 4$  
 ; pad with SPACE 	
 2$: ld a,#SPACE 
-	tnz (1,sp)
-	jreq 4$ 
-3$: ld (y),a 
-	incw y 
+3$: ld (x),a 
+	incw x
 	dec (1,sp)
 	jrne 3$
 4$:
 	_drop 1 
-	popw y 
+	popw x 
 	ret 
 
 ;----------------------------
-; compare name at *X 
-; with name at *Y 
+; compare 2 spaces padded 
+; file name 
 ; FNAME_MAX_LEN 
 ; input:
-;   X    *name1 
-;   Y    *name2
+;   X    *fname1 
+;   Y    *fname2
 ;---------------------------
 cmp_fname:
 	push #FNAME_MAX_LEN
@@ -118,8 +124,9 @@ cmp_fname:
 9$: _drop 1 
 	ret 
 
+.if 1
 ;------------------------------
-; copy file name 
+; copy space padded file name 
 ; input:
 ;   X      destination 
 ;   Y      source  
@@ -134,32 +141,66 @@ fname_cpy:
 	jrne 1$ 
 	_drop 1 
 	ret 
+.endif 
+
+;--------------------------
+; write file header to eeprom 
+; input:
+;    farptr   file address 
+;    file_heder  data 
+;------------------------------
+write_header:
+	ld a,#FILE_HEADER_SIZE 
+	ldw x,#file_header 
+	call eeprom_write 
+	ldw x,#FILE_HEADER_SIZE 
+	call incr_farptr
+	ret 
+
+;-----------------------------
+; print file name 
+; input:
+;    X    *FNAME 
+;-----------------------------
+print_fname::
+	push #FNAME_MAX_LEN
+1$: ld a,(x)
+	call putc 
+	incw x 
+	dec (1,sp)
+	jrne 1$ 	
+	ld a,#SPACE 
+	call putc 
+	_drop 1
+	ret 
 
 ;-------------------------------
 ; search a file in spi eeprom  
 ; 
-; The file name is identified 
 ; input:
-;    x      *fname 
-;    farptr   start address in file system 
+;    x      *FCB 
 ; output: 
-;    A        0 not found | 1 found
+;    A        0 not found | 1 found file
+;    X        *FCB  
 ;    farptr   file address in eeprom   
 ;-------------------------------
 	FNAME=1 
 	YSAVE=FNAME+2 
-	VSIZE=YSAVE+1 
+	FCB_REC=YSAVE+2
+	VSIZE=FCB_REC+1 
 search_file::
 	_vars VSIZE
 	ldw (YSAVE,sp),y  
-	ldw (FNAME,sp),x
+	ldw (FCB_REC,sp),x
 	call first_file  
-1$: jreq 7$  
-    ldw x,#file_header+FILE_NAME_FIELD
-	ldw y,(FNAME,sp)
+    jreq 7$  
+1$:
+    ldw x,#file_header+FILE_NAME_FIELD  
+	ldw y,(FCB_REC,sp)
+	addw y,#FCB_NAME
 	call cmp_fname 
-	jreq 4$ 
-	ldw x,#file_header 
+	jreq 4$
+	ldw x,#file_header  
 	call skip_to_next
 	call next_file 
 	jreq 7$
@@ -171,22 +212,34 @@ search_file::
 	clr a 
 8$:	
 	ldw y,(YSAVE,sp)
+	ldw x,(FCB_REC,sp)
+	tnz a 
 	_drop VSIZE 
 	ret 
 
 ;-----------------------------------
-; erase program file
+; erase file
 ; replace signature by "XX. 
 ; input:
-;   farptr    file address in eeprom  
+;   X    *FCB
+; output:
+;   X    *FCB    
 ;-----------------------------------
-erase_file::
-	ld a,#'X 
-	ldw x,#file_header
-	ld (x),a 
-	ld (1,x),a
+erase_file:: 
+	call search_file 
+	jrne 1$ 
+	ld a,#FILE_OP_NOT_FOUND
+	jra 9$
+1$:	 
+	pushw x 
+	ldw x,#FILE_ERASED 
+	_strxz file_header+FILE_SIGN_FIELD 
+	ldw x,#file_header  
 	ld a,#2 
 	call eeprom_write 
+	ld a,#FILE_OP_SUCCESS
+	popw x 
+9$: call file_op_report 
 	ret 
 
 ;--------------------------------------
@@ -216,16 +269,16 @@ reclaim_space:
 	cpw x,#512 
 	jrpl 7$ ; to end  
 	ldw x,#FILE_HEADER_SIZE
-	ldw y,#file_header
+	ldw y,#fcb
 	call eeprom_read 
-	ldw x,#file_header  
+	ldw x,#fcb  
 	ldw x,(x)
-	cpw x,#ERASED 
+	cpw x,#FILE_ERASED 
 	jreq 4$ 
 3$:	call skip_to_next
 	jra 1$ 
 4$: ; check size 
-	ldw x,#file_header  
+	ldw x,#fcb  
 	ldw x,(FILE_SIZE_FIELD,x)
 	cpw x,(NEED,sp)
 	jrult 3$ 
@@ -246,78 +299,88 @@ reclaim_space:
 
 ;--------------------------
 ; load file in RAM 
+; file already searched 
 ; input:
-;   farptr   file address 
-;   file_header   file header data 
+;    X   *FCB 
+; output:
+;    X   *FCB 
 ;--------------------------
 	FSIZE=1
 	YSAVE=FSIZE+2
-	VSIZE=YSAVE+1
+	FCB_REC=YSAVE+2
+	VSIZE=FCB_REC+1
 load_file::
 	_vars VSIZE 
 	ldw (YSAVE,sp),y
+	ldw (FCB_REC,sp),x 
+	call search_file 
+	jrne 1$ 
+	ld a,#FILE_OP_NOT_FOUND
+	ldw x,(FCB_REC,sp)
+	jra 9$ 
+1$:	
 	ldw x,#FILE_HEADER_SIZE 
 	call incr_farptr 	
-	ldw x,#file_header  
-	ldw x,(FILE_SIZE_FIELD,x)
+	ldw x,file_header+FILE_SIZE_FIELD 
 	ldw (FSIZE,sp),x 
-	ldw y,lomem 
+	ldw y,(FCB_REC,sp)
+	ldw y,(FCB_BUFFER,y)   
 	call eeprom_read 
-	ldw x,lomem 
-	addw x,(FSIZE,sp)
-	_strxz progend 
-	_strxz dvar_bgn
-	_strxz dvar_end 
+	ldw y,(FSIZE,sp)
+	ldw x,(FCB_REC,sp)
+	ldw (FCB_DATA_SIZE,x),y 
+	ld a,#FILE_OP_SUCCESS
 9$:
+	call file_op_report 
 	ldw y,(YSAVE,sp)
+	ldw x,(FCB_REC,sp)
 	_drop VSIZE 
 	ret 
 
 ;--------------------------------------
 ; save program file 
 ; input:
-;    X          FCB  
+;    X          *FCB  
 ;--------------------------------------
 	TO_WRITE=1
 	DONE=TO_WRITE+2
 	FNAME=DONE+2 
-	XSAVE=FNAME+2
-	YSAVE=XSAVE+2 
+	FCB_REC=FNAME+2
+	BUF_ADR=FCB_REC+2 
+	YSAVE=BUF_ADR+2
 	VSIZE=YSAVE+1
 save_file:
 	_vars VSIZE 
-	ldw (YSAVE,sp),y 
+	ldw (YSAVE,sp),y
+	ldw (FCB_REC,sp),x  
 ; check if file exist 
-	ldw x,#fcb+FCB_NAME 
-	_clrz farptr 
-	_clrz ptr16 
-	_clrz ptr8 
 	call search_file 
 	jreq 1$
 	ld a,#FILE_OP_CLASH 
-	_straz fcb+FCB_OP_STATUS 
-	ldw x,#file_exist 
+	ldw x,(FCB_REC,sp) 
 	jra 9$ 
 1$:	
-	ldw x,#file_header
-	ld a,#'P 
-	ld (x),a 
-	ld a,#'I  
-	ld (1,x),a
-	ldw y,fcb+FCB_DATA_SIZE
-	ldw (FILE_SIZE_FIELD,X),y
+	call search_free 
+	jrne 11$
+	ld a,#FILE_OP_SPACE
+	ldw x,(FCB_REC,sp)
+	jra 9$
+11$:	
+	ldw x,#FILE_SIGN 
+	_strxz file_header+FILE_SIGN_FIELD 
+	ldw x,(FCB_REC,sp)
+	ldw y,x
+	ldw y,(FCB_DATA_SIZE,y)
+	_stryz file_header+FILE_SIZE_FIELD 
 	ldw (TO_WRITE,sp),y 
-	addw x,#FILE_NAME_FIELD 
-	ldw y,(FNAME,sp)
+	addw x,#FCB_NAME
+	ldw y,x 
+	ldw x,#file_header+FILE_NAME_FIELD
 	call fname_cpy  
-	ld a,#FILE_HEADER_SIZE
-	ldw x,#file_header
-	clr (FILE_HEADER_SIZE-1,x) ; in case name is longer that FNAME_MAX_LEN
-	call eeprom_write 
-	ldw x,#FILE_HEADER_SIZE 
-	call incr_farptr
-	ldw x,lomem 
-	ldw (XSAVE,sp),x 
+	call write_header 
+	ldw x,(FCB_REC,sp)
+	ldw x,(FCB_BUFFER,x)
+	ldw (BUF_ADR,sp),x 
 	ldw x,#FSECTOR_SIZE-FILE_HEADER_SIZE 
 2$: 
 	cpw x,(TO_WRITE,sp)
@@ -325,29 +388,54 @@ save_file:
 	ldw x,(TO_WRITE,sp)
 3$: ldw (DONE,sp),x
 	ld a,xl 
-	ldw x,(XSAVE,sp)
+	ldw x,(BUF_ADR,sp)
 	call eeprom_write 
 	ldw x,(DONE,sp)
 	call incr_farptr
 	ldw x,(TO_WRITE,sp)
 	subw x,(DONE,sp)
 	ldw (TO_WRITE,sp),x 
-	jreq 9$ 
-	ldw x,(XSAVE,sp)
+	jreq 8$ 
+	ldw x,(BUF_ADR,sp)
 	addw x,(DONE,sp)
-	ldw (XSAVE,sp),x 
+	ldw (BUF_ADR,sp),x 
 	ldw x,#FSECTOR_SIZE
-	jra 2$ 
+	jra 2$
+8$:	 
+	ld a,#FILE_OP_SUCCESS
+	ldw x,(FCB_REC,sp)
 9$:
-	call puts 
+	call file_op_report  
 	ldw y,(YSAVE,sp)
 	_drop VSIZE 
 	ret 
 
-save_success: .asciz "File saved\n"
-file_exist: .asciz "Duplicate name.\n"
+;--------------------------------
+; report file operation status 
+; input:
+;    A     op_code 
+;    X     *FCB 
+; output:
+;    X     *FCB 
+;-------------------------------
+file_op_report:
+	pushw x 
+	ld (FCB_OP_STATUS,x),a 
+	sll a 
+	clrw x 
+    ld xl,a  
+	ldw x,(status_msg,x) 
+	call puts
+	popw x  
+	ret 
+
+status_msg: .word op_success,no_space,file_exist,not_found
+
+op_success: .asciz "operation completed\n"
 no_space: .asciz "File system full.\n" 
-save_failed: .asciz "Save failed, unknown cause.\n" 
+file_exist: .asciz "Duplicate name.\n"
+not_found: .asciz "File not found.\n" 
+
 
 ;------------------------
 ; diplay list of files 
@@ -358,39 +446,27 @@ list_files::
 	push #0
 	push #0 
 	call first_file 
-1$:	 
-	tnz a 
 	jreq 9$ 
+1$:
 	ldw x,(FCNT,sp)
 	incw x 
 	ldw (FCNT,sp),x
-	ldw x,#file_header+FILE_NAME_FIELD
-	pushw x 
-	call puts
-	popw x 
-	call strlen
-	push a 
-	push #0
-	ldw x,#FNAME_MAX_LEN 
-	subw x,(1,sp) 
-	call spaces 
-	_drop 2  
-	ldw x,#file_header+FILE_SIZE_FIELD
-	ldw x,(x)
+	ldw x,#file_header+FILE_NAME_FIELD 
+	call print_fname
+	ldw x,file_header+FILE_SIZE_FIELD
 	call print_int
 	ldw x,#file_size 
 	call puts 
 	ldw x,#file_header 
 	call skip_to_next 
 	call next_file 
-	jra 1$  
+	jrne 1$  
 9$:
 	call new_line
 	popw x 	
 	call print_int
 	ldw x,#files_count 
 	call puts 
-;	clr (y)
 	ret 
 
 file_size: .asciz "bytes\n"
@@ -404,26 +480,25 @@ files_count: .asciz "files"
 ;    farptr  address free 
 ;---------------------------
 search_free:
+	pushw x 
+	pushw y 
 	_clrz farptr 
 	clrw x 
 	_strxz ptr16 
-1$:	ldw y,#file_header 
+1$:	
+	ldw y,#file_header 
 	ldw x,#FILE_HEADER_SIZE 
 	call eeprom_read 
-	ldw x,#file_header
-	ldw x,(x)
-	_strxz acc16
 	ldw x,#-1 
-	cpw x,acc16 
-	jreq 6$   ; erased page, take it 
-	ldw x,#USED
-	cpw x,acc16 
-	jreq 4$ 
-	ldw x,#ERASED
-	cpw x,acc16  
-	jrne 6$ ; no "PB" or "XX" take it 
+	cpw x,file_header+FILE_SIGN_FIELD
+	jreq 6$   ; empty page, take it 
+.if 0
+	ldw x,#FILE_SIGN
+	cpw x,file_header+FILE_SIGN_FIELD 
+	jreq 4$
+.endif 	 
 4$: ; try next 
-	ldw x,#file_header 
+	ldw x,#file_header  
 	call skip_to_next 
 	call addr_to_page 
 	cpw x,#512 
@@ -433,6 +508,8 @@ search_free:
 6$: ; found free 
 	ld a,#1
 9$:	
+	popw y 
+	popw x 
 	ret 
 
 
@@ -441,9 +518,9 @@ search_free:
 ;  input: 
 ;    none 
 ;  output:
-;     A     0 none | 1 found 
-;  farptr   file address 
-;   pad     file header 
+;     A     0 none | 1 found file 
+; farptr	file address 
+;     X     file read buffer
 ;-----------------------------------------
 first_file::
 	_clrz farptr 
@@ -456,32 +533,46 @@ next_file::
 	call addr_to_page
 	cpw x,#512
 	jrpl 4$ 
-	ldw x,#FILE_HEADER_SIZE 
-	ldw y,#file_header  
+	ldw x,#FILE_HEADER_SIZE ; bytes to read 
+	ldw y,#file_header  ; epprom read buffer 
 	call eeprom_read 
-	ldw x,#file_header
-	ldw x,(x) ; signature 
+	_ldxz file_header+FILE_SIGN_FIELD   
 	_strxz acc16 
-	ldw x,#USED  
+	ldw x,#FILE_SIGN  
 	cpw x,acc16 
 	jreq 8$  
 	ldw x,#-1 
 	cpw x,acc16 
 	jreq 4$ ; end of files 	
-	ldw x,#ERASED 
-	cpw x,acc16 
-	jrne 4$ 
 2$:
-	ldw x,#file_header 
+	ldw x,#file_header  
 	call skip_to_next 
 	jra 1$ 
 4$: ; no more file 
 	clr a
 	jra 9$  
-8$: ld a,#1 
-9$: 	
+8$: ld a,#1
+9$:
+	ldw x,#file_header 
+    tnz a 	
 	popw y 
 	ret 
+
+;--------------------------
+; erase all files by 
+; by bulk_erasing 25LC1024
+;-----------------------------
+erase_all::
+	ldw x,#confirm_msg 
+	call puts 
+	call getc 
+	and a,#0XDF
+	cp a,#'Y 
+	jrne 9$ 
+	jp eeprom_erase_chip
+9$: ret 	
+confirm_msg: .asciz "\nDo you really want to erase all files? (N/Y)"
+
 
 ;----------------------------
 ;  skip to next program

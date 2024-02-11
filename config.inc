@@ -16,15 +16,16 @@ FS_SIZE==0xC000 ; file system size 49152 bytes  48KB
 
 APP_DATA_ORG=0x60
 
-HSI=1 ; set this to 1 if using internal high speed oscillator  
+HSI=0 ; set this to 1 if using internal high speed oscillator  
 .if HSI 
 FMSTR=16
+CLK_SRC=CLK_SWR_HSI 
 HSE=0
 .else
+HSE=1
 FMSTR=24 
-HSE=1  
+CLK_SRC=CLK_SWR_HSE   
 .endif 
-
 
 
 ; boards list

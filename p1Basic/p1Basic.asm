@@ -101,7 +101,7 @@ free_ram:
 ;-----------------------
 	PB_MAJOR=1
 	PB_MINOR=0
-	PB_REV=15
+	PB_REV=16
 		
 app_name: .asciz "pomme BASIC "
 pb_copyright: .asciz " Jacques Deschenes (c)2023,24\n"
@@ -2343,7 +2343,7 @@ kword_return:
 	_next 
 
 ;----------------------------------
-; BASIC: RUN [line#]
+; BASIC: RUN [line#] | ["file"] 
 ; run BASIC program in RAM
 ;----------------------------------- 
 cmd_run: 
@@ -2500,21 +2500,17 @@ cmd_erase:
 	btjf flags,#FRUN,0$
 	_next 
 0$:
-	_clrz farptr
-	clrw x 
 	_strxz ptr16  
 	_next_token
 	cp a,#QUOTE_IDX 
 	jrne not_file
 erase_program: 
-	ldw x,y
-	call skip_string  
-	call search_file
-	tnz a 
-	jreq 9$  ; not found 
-8$:	
-	call erase_file  
-9$:	
+	ldw x,#fcb 
+	call name_to_fcb 
+	incw y 
+	ld a,#FILE_ERASE 
+	ld (FCB_OPERATION,x),a 
+	call file_op 
 	clr (y)
 	_next 
 not_file: 
@@ -2527,7 +2523,11 @@ not_file:
 	jreq 2$
 	jp syntax_error 
 2$: 
-	call eeprom_erase_chip 
+	ldw x,#fcb 
+	ld a,#FILE_ERASE_ALL 
+	ld (FCB_OPERATION,x),a 
+	call file_op
+	clr(y)
 	_next 
 	
 ;---------------------------------------
@@ -2548,19 +2548,22 @@ cmd_save:
 	jp syntax_error 
 1$:
     ld a,#ERR_NO_PROG
-	jp syntax_error
+	jp tb_error
 2$: 
-	ldw x,y
+	ldw x,#fcb 
 	call name_to_fcb
-	ldw x,lomem 
-	_strxz fcb+FCB_BUFFER 
-	ldw x,progend 
-	subw x,lomem
-	_strxz fcb+FCB_DATA_SIZE 
+	incw y 
+	pushw y 
+	ldw y,lomem 
+	ldw (FCB_BUFFER,x),y 
+	ldw Y,progend 
+	subw Y,lomem
+	ldw (FCB_DATA_SIZE,x),y 
 	ld a,#FILE_SAVE 
-	_straz fcb+FCB_OPERATION
-	call file_op 
-9$: popw y 
+	ld (FCB_OPERATION,x),a 
+	call file_op
+	popw y  
+	clr (y)
 	_next 
 
 ;-----------------------
@@ -2586,22 +2589,31 @@ not_a_file: .asciz "file not found\n"
 ; for LOAD and RUN "file"
 ;-------------------------
 basic_load_file:
-	ldw x,y 
-	call skip_string 
-	call search_file
-	tnz a 
-	jrne 2$ ; file found   
-	ldw x,#not_a_file 
-	call puts 
+	ldw x,#fcb 
+	call name_to_fcb 
+	incw y  
+	pushw y 
+    ldw y,lomem 
+	ldw (FCB_BUFFER,x),y 
+	ld a,#FILE_LOAD 
+	call load_file
+	ld a,(FCB_OP_STATUS,x)
+	cp a,#FILE_OP_SUCCESS
+	jreq 2$ 
 	jra 9$ 
 2$: 
+	pushw x 
 	call reset_basic 
-	call load_file
+	popw y 
+	ldw y,(FCB_DATA_SIZE,y)
+	addw y,lomem 
+	_stryz progend 
+	_stryz dvar_bgn
+	_stryz dvar_end 
 9$: 
+	popw y 
 	clr (y)
 	ret 
-
-
 
 ;---------------------
 ; BASIC: DIR 
@@ -2614,6 +2626,7 @@ cmd_dir:
 	_next 
 0$:
 	call list_files 
+	clr (y)
 	_next 
 
 

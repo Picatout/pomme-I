@@ -1,3 +1,31 @@
+### 2024-02-10
+
+* Complété modification à [files.asm](files.asm) et à
+    * [p1Basic.asm](p1Basic/p1Basic.asm), **V1.0R16**.
+    * [p1Kernle.asm](p1Kernal.asm), **V1.0R5**
+
+### 2024-02-09
+
+* Continuation du travail sur [files.asm](files.asm).
+
+* Modifié [hardware_init.asm](hardware_init.asm) pour ajouter la routine **wait_state**. Cette routine vérifie la valeur de **FMSTR** définie dans [config.inc](config.inc) et programme le registre **OPT7** en accord avec cette valeur. C'est à dire que si FMSTR>16Mhz alors **OPT7** doit-être programmé pour 
+**1 wait state** et dans le cas contraire pour **0 wait state**. Pour tenir compte de l'installation d'un cristal sur **OSCIN,OSCOUT**.
+
+* La fréquence du cpu est maintenant indiqué au démarrage de l'ordinateur. 
+```
+p1Kernel version 1.0R4  Jacques Deschênes (c) 2023,24
+Fcpu= 24Mhz
+pomme I monitor version 1.0R2  Jacques Deschenes (c) 2023,24
+```
+
+### 2024-02-08
+
+* Continuation du travail sur [files.asm](files.asm).
+
+* Modification à [hardware_init.asm](hardware_init.asm) pour initialiser la RAM à 0 lors d'un power up.
+
+* Création du fichier [p1Kernel.inc](inc/p1Kernel.inc). Ce fichier contient les constantes qui définissent les services offert par le noyaux. 
+
 ### 2024-02-07 
 
 * Déplacer [files.asm](files.asm) dans le noyaux et le rendre générique.

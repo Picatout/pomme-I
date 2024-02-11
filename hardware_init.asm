@@ -31,6 +31,7 @@
 
 SYS_VARS_ORG=4 
 
+
 ;;-----------------------------------
     .area SSEG (ABS)
 ;; working buffers and stack at end of RAM. 	
@@ -61,13 +62,7 @@ farptr:: .blkb 1 ; 24 bits pointer used by file system, upper-byte
 ptr16::  .blkb 1 ; 16 bits pointer , farptr high-byte 
 ptr8::   .blkb 1 ; 8 bits pointer, farptr low-byte  
 trap_ret:: .blkw 1 ; trap return address 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; keep these 2 variables in this order 
-; file_header share first 3 fields of fcb
-; see inc/files.inc 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
-file_header::   
-file_sign:: .blkw 1 ; file signature 
+file_header: .blkb FILE_HEADER_SIZE 
 fcb:: .blkb FCB_SIZE  ; file control block structure 
 kvars_end:: 
 SYS_VARS_SIZE==kvars_end-ticks   
@@ -137,6 +132,65 @@ NonHandledInterrupt::
 ;    peripherals initialization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;----------------------------
+; if fmstr>16Mhz 
+; program 1 wait state in OPT7 
+;----------------------------
+wait_state:
+	ld a,#FMSTR 
+	cp a,#16 
+	jrule no_ws 
+set_ws:	; for fmstr>16Mhz 1 wait required 
+	tnz FLASH_WS ; OPT7  
+	jrne opt_done ; already set  
+	ld a,#1 
+	jra prog_opt7 	
+no_ws: ; fmstr<=16Mhz no wait required 
+	tnz FLASH_WS 
+	jreq opt_done ; already cleared 
+	clr a 
+prog_opt7:
+	call unlock_eeprom 
+	ld FLASH_WS,a 
+	cpl a 
+	ld FLASH_WS+1,a 
+	btjf FLASH_IAPSR,#FLASH_IAPSR_EOP,.
+	btjf FLASH_IAPSR,#FLASH_IAPSR_HVOFF,.
+	_swreset 
+opt_done:
+	ret  
+
+
+unlock_eeprom:
+	btjt FLASH_IAPSR,#FLASH_IAPSR_DUL,9$
+	mov FLASH_CR2,#0 
+	mov FLASH_NCR2,#0xFF 
+	mov FLASH_DUKR,#FLASH_DUKR_KEY1
+    mov FLASH_DUKR,#FLASH_DUKR_KEY2
+	btjf FLASH_IAPSR,#FLASH_IAPSR_DUL,.
+9$:	
+    bset FLASH_CR2,#FLASH_CR2_OPT
+    bres FLASH_NCR2,#FLASH_CR2_OPT 
+	ret
+
+;--------------------
+; if OPT7 cleared 
+; Set OPT7
+; and reset MCU  
+;--------------------
+prog_wait_state:
+	mov FLASH_CR2,#0 
+	mov FLASH_NCR2,#0xFF 
+	mov FLASH_DUKR,#FLASH_DUKR_KEY1
+    mov FLASH_DUKR,#FLASH_DUKR_KEY2
+	btjf FLASH_IAPSR,#FLASH_IAPSR_DUL,.
+	ld a,#1
+	ld FLASH_WS,a
+	ld a,#0x7E  
+	ld NFLASH_WS,a  
+	btjf FLASH_IAPSR,#FLASH_IAPSR_EOP,.
+	_swreset 
+
 ;----------------------------------------
 ; inialize MCU clock 
 ; input:
@@ -148,7 +202,7 @@ NonHandledInterrupt::
 ;----------------------------------------
 clock_init:	
 	_straz fmstr
-	ld a,xh ; clock source HSI|HSE 
+	ld a,xh ; clock source CLK_SWR_HSI||CLK_SWR_HSE 
 	bres CLK_SWCR,#CLK_SWCR_SWIF 
 	cp a,CLK_CMSR 
 	jreq 2$ ; no switching required 
@@ -264,6 +318,7 @@ set_int_priority::
 ;  initialization entry point 
 ;-------------------------------------
 cold_start:
+	call wait_state
 ;empty stack
 	ldw x,#RAM_SIZE-1 
 	ldw sp,x 
@@ -294,13 +349,11 @@ cold_start:
 ; disable schmitt triggers on Arduino CN4 analog inputs
 	mov ADC_TDRL,0x3f
 ; select internal clock no divisor: 16 Mhz 	
-	ld a,#16 ; Mhz 
-	ldw x,#CLK_SWR_HSI<<8   ; high speed internal oscillator 
-    call clock_init 
+	ld a,#FMSTR ; oscillateur frequency in Mhz 
+	ldw x,#CLK_SRC<<8   ; CLK_SWR_HSI || CLK_SWR_HSE  
+    call clock_init
 ; UART at 115200 BAUD
 ; used for user interface 
-	ldw x,#uart_putc 
-	ldw out,x 
 	call uart_init
 	call timer4_init ; msec ticks timer 
 	call timer2_init ; tone generator 	
@@ -316,7 +369,22 @@ cold_start:
 ;jp eeprom_test 
 
     call kernel_show_version  	
+	call show_cpu_frequency
 	jp WOZMON
+
+show_cpu_frequency:
+	ldw x,#cpu_freq
+	call puts 
+	ld a,#FMSTR 
+	call prt_i8 
+	ld a,#BS  
+	call uart_putc
+	ldw x,#scale_factor 
+	call puts   
+	ret 
+cpu_freq: .asciz "Fcpu= " 
+scale_factor: .asciz "Mhz" 
+
 
 .if 0
 	bset sys_flags,#FSYS_UPPER 

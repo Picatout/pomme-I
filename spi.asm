@@ -356,7 +356,7 @@ eeprom_read_status:
 ; page 
 ; input:
 ;   farptr  address 
-;   A       byte count, 0 -> 256 
+;   A       byte count, 0 == 256 
 ;   X       buffer address 
 ; output:
 ;   none 
@@ -505,6 +505,7 @@ page_addr:
 
 ;----------------------------
 ; convert address to sector#
+; expect 256 bytes SECTOR_SIZE 
 ; input:
 ;   farptr   address 
 ; output:

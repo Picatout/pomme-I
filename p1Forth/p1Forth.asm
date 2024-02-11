@@ -107,7 +107,7 @@ PTR8 = FPTR+2           ; least byte of farptr
 ;; Version control
 
 MAJOR     =     5         ;major release version
-MINOR     =     0         ;minor extension
+MINOR     =     1         ;minor extension
 REV       =     0         ;revision 
 
 ;; Constants
@@ -2881,7 +2881,7 @@ PARS8:  CALL     OVER
         CALL     RFROM
         CALL     PARS
         CALL     INN
-        JP     PSTOR
+        JP       PSTOR
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       .(      ( -- )

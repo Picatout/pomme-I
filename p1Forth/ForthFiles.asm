@@ -30,8 +30,14 @@
 ;------------------------------
     _HEADER ASCIZ,5,"ASCIZ" 
     CALL TOR   ; ( -- R: a )
-    CALL TOKEN  
+    CALL TOKEN 
     CALL COUNT ; ( -- b cnt R: a)
+    CALL DUPP 
+    CALL ZEQUAL 
+    call ABORQ 
+    .byte 15
+    .ascii "\nstring missing"
+1$:  
     CALL DUPP  
     CALL NROT  ; ( -- cnt b cnt )
     CALL RAT   
@@ -112,6 +118,9 @@ set_file_name: ; string ( - )
     ld a,#FILE_ERASE 
 
 set_file_op:
+    push a 
+    call CRLF
+    pop a 
     ld (FCB_OPERATION,x),a 
     call file_op 
     popw x  

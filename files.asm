@@ -442,15 +442,25 @@ not_found: .asciz "File not found.\n"
 ; in files system 
 ;------------------------
 	FCNT=1 
+	SCTR_CNT=FCNT+2
+	VSIZE=SCTR_CNT+1
 list_files::
-	push #0
-	push #0 
+	_vars VSIZE 
+	clrw x 
+	ldw (FCNT,sp),x 
+	ldw (SCTR_CNT,sp),x 
 	call first_file 
 	jreq 9$ 
 1$:
 	ldw x,(FCNT,sp)
 	incw x 
 	ldw (FCNT,sp),x
+	ldw x,file_header+FILE_SIZE_FIELD
+	addw x,#FILE_HEADER_SIZE
+	call sector_align
+	call size_to_sector 
+	addw x,(SCTR_CNT,sp)
+	ldw (SCTR_CNT,sp),x 
 	ldw x,#file_header+FILE_NAME_FIELD 
 	call print_fname
 	ldw x,file_header+FILE_SIZE_FIELD
@@ -463,15 +473,20 @@ list_files::
 	jrne 1$  
 9$:
 	call new_line
-	popw x 	
+	ldw x,(FCNT,sp) 	
 	call print_int
 	ldw x,#files_count 
 	call puts 
+	ldw x,(SCTR_CNT,sp)
+	call print_int
+	ldw x,#sectors_used 
+	call puts  
+	_drop VSIZE 
 	ret 
 
 file_size: .asciz "bytes\n"
-files_count: .asciz "files"
-
+files_count: .asciz "files\n"
+sectors_used: .asciz "sectors used\n" 
 
 ;---------------------------
 ; search free page in eeprom 
@@ -574,6 +589,35 @@ erase_all::
 confirm_msg: .asciz "\nDo you really want to erase all files? (N/Y)"
 
 
+
+;-----------------------------
+;  compute sector used 
+;  size/SECTOR_SIZE
+;  expect FSECTOR_SIZE=256  
+; input:
+;    X   data size  
+; ouput:
+;    X    sector count 
+;------------------------------
+size_to_sector:
+	clr a 
+	rrwa x 
+	ret 
+
+;-------------------------------
+;  round up size to n*sector 
+;  expect FSECTOR_SIZE=256 
+; input:
+;     X   size 
+; output:
+;     X   rounded up to n*sector 
+;-------------------------------
+sector_align:
+	addw x,#FSECTOR_SIZE-1 
+	clr a 
+	ld xl,a 
+	ret 
+
 ;----------------------------
 ;  skip to next program
 ;  in file system  
@@ -585,10 +629,7 @@ confirm_msg: .asciz "\nDo you really want to erase all files? (N/Y)"
 ;----------------------------
 skip_to_next::
 	ldw x,(FILE_SIZE_FIELD,x)
-	addw x,#FILE_HEADER_SIZE 
-	addw x,#FSECTOR_SIZE-1 
-	clr a 
-	ld xl,a 
+	call sector_align  
 
 ;----------------------
 ; input: 

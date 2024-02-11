@@ -559,7 +559,7 @@ EXIT:
 ; transfert addres on TOS 
 ; to farptr 
 ;-------------------------------
-psram_adr: ; ( d -- )
+xram_adr: ; ( d -- )
         LDW     Y,X 
         LD     A,(1,Y) 
         _straz farptr 
@@ -568,11 +568,11 @@ psram_adr: ; ( d -- )
         ret 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM@ ( d -- n )
+;       XRAM@ ( d -- n )
 ; read data from spi ram
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER PSRAMAT,6,"PSRAM@"
-        CALL    psram_adr 
+        _HEADER XRAMAT,5,"XRAM@"
+        CALL    xram_adr 
         _TDROP 
         PUSHW   X 
         LDW     X,#2 
@@ -582,11 +582,11 @@ psram_adr: ; ( d -- )
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM! ( n d -- )
+;       XRAM! ( n d -- )
 ; write data to spi ram 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER PSRAMSTO,6,"PSRAM!"
-        CALL    psram_adr
+        _HEADER XRAMSTO,5,"XRAM!"
+        CALL    xram_adr
         _DDROP 
         LDW     Y,X 
         _TDROP 
@@ -601,7 +601,7 @@ psram_adr: ; ( d -- )
 ; set transfert count and 
 ; buffer address 
 ;--------------------------------
-psram_blk_param: ; ( cnt b -- )
+xram_blk_param: ; ( cnt b -- )
 ;; open a slot on SP to save X
 ;; will be retreived by caller  
         LDW     Y,(1,SP) 
@@ -614,26 +614,26 @@ psram_blk_param: ; ( cnt b -- )
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM-BLK@ ( cnt b d -- )
+;       XRAM-BLK@ ( cnt b d -- )
 ; read cnt bytes from spi ram to b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER,PSRAM_BLK_AT,10,"PSRAM-BLK@"
-        call psram_adr
+        _HEADER,XRAM_BLK_AT,9,"XRAM-BLK@"
+        call xram_adr
         _DDROP 
-        CALL    psram_blk_param
+        CALL    xram_blk_param
         call    spi_ram_read 
         POPW    X 
         _DDROP 
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       PSRAM-BLK! ( cnt b d -- )
+;       XRAM-BLK! ( cnt b d -- )
 ; write cnt bytes to spi ram from b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER PSRAM_BLK_STO,10,"PSRAM-BLK!"
-        call psram_adr
+        _HEADER XRAM_BLK_STO,9,"XRAM-BLK!"
+        call xram_adr
         _DDROP 
-        CALL    psram_blk_param
+        CALL    xram_blk_param
         call    spi_ram_write  
         POPW    X 
         _DDROP 
@@ -4421,6 +4421,9 @@ COLD1:  CALL     DOLIT
         CALL     ATEXE   ;application boot
         CALL     OVERT
         JP     QUIT    ;start interpretation
+
+; files support words 
+        .include "ForthFiles.asm" 
 
 .if WANT_SCALING_CONST 
         .include "const_ratio.asm"

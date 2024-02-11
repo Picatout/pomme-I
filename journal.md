@@ -1,3 +1,14 @@
+### 2024-02-11
+
+* p1Forth, Ajouté les mots suivanrts:
+    * **SAVE** **( "file_name" )**, pour sauvegarder une image Forth dans l'eeprom externe 
+    * **LOAD** **( "file_name* )** , pour charger une image forth sauvegardée.
+    * **DIR** **( -- )** , afficher la liste des fichiers disponible.
+    * **DELETE** **( "file_name" )**, pour supprimer une fichier.
+* Ajout du fichier [ForthFiles.asm](p1Forth/ForthFiles.asm).
+
+* p1Forth,  renommé les mots débutant par **PSRAM** par le préfixe **XRAM**.
+
 ### 2024-02-10
 
 * Complété modification à [files.asm](files.asm) et à

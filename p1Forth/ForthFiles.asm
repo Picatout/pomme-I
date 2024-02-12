@@ -93,6 +93,8 @@ set_file_name: ; string ( - )
     call set_file_name 
     pushw X 
     ldw X,#fcb 
+    ldw y,#UBASE 
+    ldw (FCB_BUFFER,x),y 
     ld a,#FILE_LOAD 
     jra set_file_op 
 

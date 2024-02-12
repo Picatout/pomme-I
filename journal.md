@@ -1,5 +1,9 @@
 ### 2024-02-11
 
+* Puisque l'utilisation de la carte **NUCLEO-8S208RB** n'ajouterait rien à ce projet j'ai éliminer les fichiers et simplifié la configuration du build. 
+
+* Corrigé bogue dans le mot **LOAD** de p1Forth, l'adresse de chargement du fichier n'était pas indiqué dans le **FCB**. 
+
 * p1Forth, Ajouté les mots suivanrts:
     * **SAVE** **( "file_name" )**, pour sauvegarder une image Forth dans l'eeprom externe 
     * **LOAD** **( "file_name* )** , pour charger une image forth sauvegardée.

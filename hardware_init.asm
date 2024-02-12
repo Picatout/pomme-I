@@ -97,18 +97,10 @@ FSYS_UPPER==2 ; getc uppercase all letters
 	int NonHandledInterrupt ;int15 TIM3 Update/overflow
 	int NonHandledInterrupt ;int16 TIM3 Capture/compare
 	int NonHandledInterrupt ;int17 UART1 TX completed
-.if NUCLEO_8S208RB  
-	int UartRxHandler		;int18 UART1 RX full 
-.else 
 	int NonHandledInterrupt ;int18 UART1 RX full 
-.endif 
 	int NonHandledInterrupt ; int19 i2c
 	int NonHandledInterrupt ;int20 UART3 TX completed
-.if NUCLEO_8S207K8  
 	int UartRxHandler 		;int21 UART3 RX full
-.else 
-	int NonHandledInterrupt ;int21 UART3 RX full
-.endif 
 	int NonHandledInterrupt ;int22 ADC2 end of conversion
 	int Timer4UpdateHandler	;int23 TIM4 update/overflow ; used as msec ticks counter
 	int NonHandledInterrupt ;int24 flash writing EOP/WR_PG_DIS

@@ -108,7 +108,7 @@ PTR8 = FPTR+2           ; least byte of farptr
 
 MAJOR     =     5         ;major release version
 MINOR     =     1         ;minor extension
-REV       =     0         ;revision 
+REV       =     1         ;revision 
 
 ;; Constants
 

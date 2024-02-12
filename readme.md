@@ -13,6 +13,22 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2024-02-11 
+
+Le **p1Forth** est maintenant complété et possède les commandes suivantes pour accéder au système de fichiers.
+* **DIR**  pour afficher la liste des fichiers. 
+* **SAVE nom_fichier**  pour sauvegarder l'image en RAM. 
+* **LOAD nom_fichier**  pour charger en RAM une image sauvegardé.
+* **DELETE nom_fichier** pour supprimer un fichier.
+
+Les mots suivants permettent d'utiliser la mémoire RAM SPI pour les données programme. Pour tous ces mots **d** est un entier double. 
+* **XRAM! ( n d -- )**  sauvegarde l'entier **n** à l'adresse **d** dans la RAM SPI.
+* **XRAM@ ( d -- n )**  empile l'entier **n** qui est à l'adresse **d** de la mémoire RAM SPI. 
+* **XRAM-BLK! ( n a d -- )** sauvegarde **n** octets à l'adresse **a** dans la mémoire RAM SPI à l'adresse **d**.
+* **XRAM-BLK@ ( n a d -- )** charge **n** octets à l'adresse **a** à partir de l'adresse **d** de la mémoire RAM SPI.   
+
+**NOTE:** Dans la version actuelle p1Forth ne reconnaît pas les entiers doubles à la saisie il faut les saisir comme 2 entiers simple. Par exemple 0 1 correspond à l'entier double 65536 et 1 0 correspond à l'entier double 1.
+
 ## 2024-01-31
 
 L'ordinateur **pomme-I** a maintenant un second la langage, **p1Forth**. À partir du moniteur la touche rapide **CTRL+F** lance **p1Forth**. pour revenir au moniteur il faut utiliser le mot **bye** comme en **p1BASIC**.  Le travail sur **p1Forth** n'est pas complété. Certains mots seront ajoutés et d'autres possiblement retirés.

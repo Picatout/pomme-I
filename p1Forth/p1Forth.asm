@@ -74,7 +74,7 @@ SPP     =     DATSTK     ; data stack bottom
 RPP     =     STACK      ;  return stack bottom
 ROWBUFF =     TBUFFBASE ; flash write buffer 
 TIBB    =     TIBBASE  ; transaction input buffer
-VAR_BASE =    RAMBASE+0x80  ; user variables start here .
+VAR_BASE =    RAMBASE+0x40  ; user variables start here .
 VAR_TOP =     DATSTK-32*CELLL  ; reserve 32 cells for data stack. 
 
 ; user variables constants 

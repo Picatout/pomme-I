@@ -25,7 +25,7 @@ FREE_RAM==RAM_SIZE-STACK_SIZE-PAD_SIZE-TIB_SIZE-PAGE0_SIZE ; 5504
 
 APP_DATA_ORG=0x60
 
-HSI=0 ; set this to 1 if using internal high speed oscillator  
+HSI=1 ; set this to 1 if using internal high speed oscillator  
 .if HSI 
 FMSTR=16
 CLK_SRC=CLK_SWR_HSI 

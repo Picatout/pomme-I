@@ -40,6 +40,12 @@ pomme: clean kernel $(EMBEDDED)
 	@ls -l  $(BUILD)$(BOARD)/$(NAME).bin 
 	# 
 
+hse_x24m: pomme 
+	cp $(BUILD)$(BOARD)/$(NAME).bin dist/pomme_1_hse24m.bin 
+
+hsi_16m: pomme 
+	cp $(BUILD)$(BOARD)/$(NAME).bin dist/pomme_1_hsi16m.bin 
+
 
 .PHONY: clean 
 clean:
@@ -96,6 +102,13 @@ flash:
 	# "flashing $(BOARD) "
 	# "******************"
 	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w $(BUILD)$(BOARD)/$(NAME).ihx 
+
+flash_hse24m:
+	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w dist/pomme_1_hse24m.bin 
+
+flash_hsi16m: hsi_16m
+	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w dist/pomme_1_hsi16m.bin 	 
+
 
 # read flash memory 
 read: 

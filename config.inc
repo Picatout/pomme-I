@@ -2,6 +2,14 @@
 ;;  system configuration parameters 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; version du projet pomme-I
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+P1_MAJOR=1 
+P1_MINOR=1
+P1_REV=0 
+
+
 DEBUG=0 ; set to 1 to embed debug support code.
 
 STACK_SIZE==128 ; at end of RAM 

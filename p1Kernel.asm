@@ -31,13 +31,12 @@
 
 KERNEL_MAJOR = 1
 KERNEL_MINOR = 0 
-KERNEL_REV = 5
+KERNEL_REV = 6
 
 kernel_name: .asciz "p1Kernel " 
 kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"
 
 kernel_show_version:
-    call clr_screen
     ldw x,#kernel_name 
     ldw y,#kernel_cpr
     push #KERNEL_REV 

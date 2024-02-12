@@ -359,10 +359,20 @@ cold_start:
 
 ;jp spi_ram_test 
 ;jp eeprom_test 
-
-    call kernel_show_version  	
+	call clr_screen
+	ldw x,#pomme_1 
+	ldw y,#p1Copyright
+	push #P1_REV 
+	push #P1_MINOR 
+	push #P1_MAJOR 
+	call app_info
+	_drop 3 
 	call show_cpu_frequency
+    call kernel_show_version  	
 	jp WOZMON
+
+pomme_1: .asciz "pomme I "
+p1Copyright: .asciz "Copyright Jacques Deschenes, (c) 2023,24\n"
 
 show_cpu_frequency:
 	ldw x,#cpu_freq
@@ -375,7 +385,7 @@ show_cpu_frequency:
 	call puts   
 	ret 
 cpu_freq: .asciz "Fcpu= " 
-scale_factor: .asciz "Mhz" 
+scale_factor: .asciz "Mhz\n" 
 
 
 .if 0

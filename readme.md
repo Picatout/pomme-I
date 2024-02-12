@@ -13,6 +13,13 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2024-02-12
+
+1. J'ai créé un dossier [dist](dist/readme.md) qui contient les binaires pour programmer la carte NUCLEO-8S207K8. 
+1. Désormais les tags seront définis à partir d'un numéro de version global pour le projet pomme-I plutôt que du numéro de version du p1BASIC comme c'était le cas jusqu'ici. le BASIC n'étant qu'une application embarquée *(embedded)* sur l'ordinateur comme le p1Forth et le p1Moniteur.
+1. Maintenant le numéro de version de pomme-I s'affiche au démarrage de l'ordinateur, ainsi que la fréquence du STM8.
+1. Consulter le lien suivant pour connaître comment installer le binaire: [installation du binaire](https://picatout-jd.blogspot.com/2024/02/pomme-i-version-de-base.html).
+
 ## 2024-02-11 
 
 Le **p1Forth** est maintenant complété et possède les commandes suivantes pour accéder au système de fichiers.

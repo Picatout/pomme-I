@@ -1,3 +1,36 @@
+### 2024-02-12
+
+* Modifié [p1Monitor.asm](p1Monitor.asm) pour ajouter la command **"** qui permet de modifier la mémoire RAM avec une chaîne de caractères. Tous les caractères qui suivent le **"** jusqu'à la fin de la ligne sont insérés dans la mémoire et un **0** est ajouté à la fin.
+```
+#200: A6 8 AE 2 8 83 81
+
+0200: A6
+#208: A
+
+0208: 0A
+#209"HELLO WORLD!
+
+0209: 48
+#200R
+
+0200: A6
+HELLO WORLD!
+pomme I monitor version 1.0R3  Jacques Deschenes (c) 2023,24
+
+#200.220
+
+0200: A6 08 AE 02 08 83 81 00
+0208: 0A 48 45 4C 4C 4F 20 57
+0210: 4F 52 4C 44 21 00 00 00
+0218: 00 00 00 00 00 00 00 00
+0220: 00
+#
+```
+
+* Ajouté lde dossier **dist** pour y déposé les binaires. 
+
+* Modifié le fichier [Makefile](Makefile) pour ajouter des cibles pour séparer la compilation des 2 modèles avec et sant cristal externes. 
+
 ### 2024-02-11
 
 * Puisque l'utilisation de la carte **NUCLEO-8S208RB** n'ajouterait rien à ce projet j'ai éliminer les fichiers et simplifié la configuration du build. 

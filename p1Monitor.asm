@@ -53,11 +53,11 @@ MODE=LAST+2
 XAM=0
 XAM_BLOK='.
 STOR=': 
-
+QUOTE='" 
 
 MON_MAJOR=1 
 MON_MINOR=0 
-MON_REV=2
+MON_REV=3
 
 ; Modeled on Apple I monitor Written by Steve Wozniak 
 
@@ -104,6 +104,8 @@ NEXTCHAR:
     jreq FORMAT 
     cp a,#CTRL_F
     jreq GO_FORTH 
+    cp a,#QUOTE
+    jreq UPPER
     cp a,#'`
     jrmi UPPER ; already uppercase 
 ; uppercase character
@@ -128,11 +130,13 @@ NEXTITEM:
     ld a,(tib,y)
     cp a,#CR ; 
     jreq GETLINE ; end of input line  
+    cp a,#QUOTE 
+    jreq STOR_QUOTE 
     cp a,#XAM_BLOK
     jrmi BLSKIP 
     jreq SETMODE 
     cp a,#STOR 
-    jreq SETMODE 
+    jreq SETMODE
     cp a,#'R 
     jreq RUN
     _stryz YSAV ; save for comparison
@@ -172,7 +176,7 @@ GOTNUMBER:
 NOTREAD:  
 ; which mode then?        
     cp a,#': 
-    jrne XAM_BLOCK
+    jrne XAM_BLOCK  
     ld a,xl 
     _ldxz STORADR 
     ld (x),a 
@@ -184,6 +188,18 @@ RUN:
     _ldxz XAMADR 
     call (x)
     jp WOZMON
+STOR_QUOTE:
+    _ldxz XAMADR  
+1$:
+    incw y 
+    ld a,(tib,y)
+    cp a,#CR
+    jreq 2$
+    ld (x),a 
+    incw x 
+    jra 1$
+2$: clr (x)
+    jp GETLINE 
 XAM_BLOCK:
     _strxz LAST 
     _ldxz XAMADR

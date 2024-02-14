@@ -1,3 +1,18 @@
+### 2024-02-13
+
+* Modifié **XRAM@** et **XRAM!**  dans [p1Forth](p1Forth/p1Forth.asm). Puisqu'il s'agit d'entiers une addresse simple est suffisante. L'adresse étant multipliée par 2 pour aligné sur les mots de 16 bits.
+    *  **XRAM@ ( a -- n ) retourne l'entier à l'adresse **a**.
+    *  **XRAM! ( n a -- ) sauvegarde l'entier à l'adresse **a**.
+
+* Renommé 2 mots dans [p1Forth](p1Forth/p1Forth.asm).
+    * **XRAM-BLK@** renommé **XRAM-BLK-C@** 
+    * **XRAM-BLK!** renommé **XRAM-BLK-C!** 
+    
+* Modification de [p1BASCI](p1Basic/p1Basic.asm) pour permettre l'accès à la mémoire RAM SPI. L'accès se fait via un tableau.
+    *  **XRAM(0..$FFFF)**. 
+
+* Ajout du mot **MARK ( string -- )** au vocabulaire de [p1Forth](p1Forth/p1Forth.asm).
+
 ### 2024-02-12
 
 * Modifié [p1Monitor.asm](p1Monitor.asm) pour ajouter la command **"** qui permet de modifier la mémoire RAM avec une chaîne de caractères. Tous les caractères qui suivent le **"** jusqu'à la fin de la ligne sont insérés dans la mémoire et un **0** est ajouté à la fin.

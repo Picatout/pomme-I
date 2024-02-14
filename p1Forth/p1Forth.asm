@@ -26,6 +26,14 @@
 ;
 ;  Adapted to pomme-I computer 2024/01/29
 ;--------------------------------------------------------------
+
+;***********************************************
+;*********** Version ***************************
+;***********************************************
+MAJOR     =     5         ;major release version
+MINOR     =     1         ;minor extension
+REV       =     3         ;revision 
+
 	.module EFORTH
          .optsdcc -mstm8
 
@@ -102,13 +110,6 @@ RP0	= SP0+2		;initial return stack pointer
 FPTR = RP0+2         ; 24 bits farptr 
 PTR16 = FPTR+1          ; middle byte of farptr 
 PTR8 = FPTR+2           ; least byte of farptr 
-
-;***********************************************
-;; Version control
-
-MAJOR     =     5         ;major release version
-MINOR     =     1         ;minor extension
-REV       =     1         ;revision 
 
 ;; Constants
 
@@ -252,6 +253,37 @@ FORGET2: ; no name or not found in dictionary
         .ascii " not a word"
 FORGET4:
         jp DROP 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       MARK ( string --)
+; create a word that when 
+; executed FORGET itslef 
+; and all following words 
+; : MARK CREATE LAST @ 2- @ , DOES> @ DUP CONTEXT ! LAST ! ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER MARK,4,"MARK" 
+        CALL    CREAT 
+        CALL    LAST
+        CALL    AT
+        CALL    CELLM 
+        CALL    AT   
+        CALL    COMA
+        CALL    HERE
+        _DOLIT  2*CELLL 
+        CALL    SUBB 
+        _dolit  RT_MARK 
+        CALL    SWAPP 
+        CALL    STORE 
+        RET          
+RT_MARK:       
+        CALL    AT 
+        CALL    DUPP
+        CALL    CNTXT 
+        CALL    STORE 
+        CALL    LAST 
+        CALL    STORE 
+        RET 
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;    SEED ( u -- )
@@ -559,41 +591,41 @@ EXIT:
 ; transfert addres on TOS 
 ; to farptr 
 ;-------------------------------
-xram_adr: ; ( d -- )
+xram_adr: ; ( a -- )
+        _clrz  farptr 
         LDW     Y,X 
-        LD     A,(1,Y) 
-        _straz farptr 
-        LDW     Y,(2,Y) 
+        LDW     Y,(Y) 
+        SLLW    Y 
+        bccm    farptr,#0  
         _stryz  ptr16 
         ret 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       XRAM@ ( d -- n )
+;       XRAM@ ( a -- n )
 ; read data from spi ram
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER XRAMAT,5,"XRAM@"
         CALL    xram_adr 
-        _TDROP 
         PUSHW   X 
+        LDW     Y,X 
         LDW     X,#2 
-        LDW     Y,(1,SP)
         CALL    spi_ram_read 
         POPW    X 
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       XRAM! ( n d -- )
+;       XRAM! ( n a -- )
 ; write data to spi ram 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER XRAMSTO,5,"XRAM!"
         CALL    xram_adr
-        _DDROP 
-        LDW     Y,X 
         _TDROP 
+        LDW     Y,X 
         PUSHW   X 
         LDW     X,#2
         call    spi_ram_write 
         POPW    X
+        _TDROP 
         RET 
 
 
@@ -604,22 +636,26 @@ xram_adr: ; ( d -- )
 xram_blk_param: ; ( cnt b -- )
 ;; open a slot on SP to save X
 ;; will be retreived by caller  
+        LDW     Y,X  
+        LD      A,(1,Y)
+        _straz  farptr 
+        LDW     Y,(2,Y)
+        _stryz  ptr16 
+        _DDROP 
         LDW     Y,(1,SP) 
         SUB     SP,#CELLL 
         LDW     (1,SP),Y 
         LDW     (3,SP),X ; save X 
+        LDW     Y,X 
+        LDW     Y,(Y)  ; buffer 
         LDW     X,(2,X) ; cnt 
-        LDW     Y,(3,SP)
-        LDW     Y,(Y)  ; b 
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       XRAM-BLK@ ( cnt b d -- )
+;       XRAM-BLKC@ ( cnt b d -- )
 ; read cnt bytes from spi ram to b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER,XRAM_BLK_AT,9,"XRAM-BLK@"
-        call xram_adr
-        _DDROP 
+        _HEADER,XRAM_BLK_CAT,11,"XRAM-BLK-C@"
         CALL    xram_blk_param
         call    spi_ram_read 
         POPW    X 
@@ -630,9 +666,7 @@ xram_blk_param: ; ( cnt b -- )
 ;       XRAM-BLK! ( cnt b d -- )
 ; write cnt bytes to spi ram from b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER XRAM_BLK_STO,9,"XRAM-BLK!"
-        call xram_adr
-        _DDROP 
+        _HEADER XRAM_BLK_CSTO,11,"XRAM-BLK-C!"
         CALL    xram_blk_param
         call    spi_ram_write  
         POPW    X 
@@ -4016,7 +4050,7 @@ IMM01:  CALL	LAST
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;       CREATE  ( -- ; <string> )
-;       Compile a new array
+;       Compile a new word 
 ;       without allocating space.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER CREAT,6,"CREATE"
@@ -4105,7 +4139,7 @@ DO_DCONST:
 ;--------------------------------
 ;  runtime action of DOES>
 ;-------------------------------
-DO_DOES:
+RT_DOES:
         POPW    Y 
         ADDW    Y,#CELLL 
         PUSHW   Y 
@@ -4127,7 +4161,7 @@ DO_DOES:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         _HEADER DOESGT,5+IMEDD+COMPO,"DOES>"
         CALL    COMPI 
-        .word   DO_DOES
+        .word   RT_DOES
         LDW     Y,(1,SP)
         ADDW    Y,#1
         CALL    HERE 

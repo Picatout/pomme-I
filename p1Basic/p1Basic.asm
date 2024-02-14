@@ -41,6 +41,12 @@
 ;
 ;--------------------------------------------------- 
 
+;--------------------------------
+;  p1BASIC VERSION 
+;--------------------------------
+	PB_MAJOR=1
+	PB_MINOR=1
+	PB_REV=0
 
     .module P1_BASIC 
 
@@ -99,9 +105,6 @@ free_ram:
 ;  display POMME BASIC  
 ;  information 
 ;-----------------------
-	PB_MAJOR=1
-	PB_MINOR=0
-	PB_REV=16
 		
 app_name: .asciz "pomme BASIC "
 pb_copyright: .asciz " Jacques Deschenes (c)2023,24\n"
@@ -867,7 +870,7 @@ and_cond:
 ; operators: OR
 ; format:  and_cond [ OP and_cond ]* 
 ; output:
-;    stack   value 
+;    x    value 
 ;--------------------------------------------
 	B1=1 ; left bool 
 	OP=B1+INT_SIZE ; 1 bytes 
@@ -1963,6 +1966,50 @@ func_key:
 	rlwa x  
 9$:
 	ret 
+
+;-------------------------------------------
+; BASIC: XRAM (address)=expression 
+;        ?|var = XRAM(address)
+; write or read data to|from SPI RAM 
+; adress -> {0..$ffff}
+;-------------------------------------------
+	ADR=1
+	VSIZE=2
+xram_array:
+	call func_args 
+	cp a,#1
+	jreq 1$
+0$:	
+	jp syntax_error 
+1$: 
+	_clrz farptr 
+	ldw x,(ADR,sp)
+	sllw x 
+	_strxz ptr16 
+	bccm farptr,#0 
+	ld a,(y)
+	cp a,#REL_EQU_IDX 
+	jrne func_xram_read 
+	incw y 
+	call expression 
+	_strxz acc16 
+	pushw y 
+	ldw y,#acc16 
+	ldw x,#2 
+	call spi_ram_write 
+	popw y 
+	_drop VSIZE 
+	_next 
+func_xram_read:
+	pushw y 
+	ldw y,#acc16 
+	ldw x,#2 
+	call spi_ram_read 
+	popw y 
+	_ldxz acc16 
+	_drop VSIZE 
+	ret 
+
 
 ;--------------------
 ; BASIC: POKE addr,byte
@@ -3313,26 +3360,36 @@ not_a_line:
 cmd_himem:
 	btjf flags,#FRUN,1$
 	_next 
-1$: ld a,#REL_EQU_IDX 
-	call expect 
+1$: 
+	ld a,(y)
+	cp a,#REL_EQU_IDX 
+	jrne func_himem
+	incw y  
 	call expression 
 	cpw x,lomem  
 	jrule bad_value 
 	cpw x,#tib  
-	jruge bad_value  
+	jrugt bad_value  
 	_strxz himem
 	jra clear_prog_space  
 	_next 
+func_himem:
+	_ldxz himem 
+	ret 
+
 ;--------------------------------
-; BASIC: LOWMEM = expr 
+; BASIC: LOMEM = expr 
+;         var|? = LOMEM 
 ; set start memory address of 
 ; BASIC program space. 	
 ;---------------------------------
 cmd_lomem:
 	btjf flags,#FRUN,1$
 	_next
-1$: ld a,#REL_EQU_IDX 
-	call expect 
+1$: ld a,(y) 
+	cp a,#LOMEM_IDX
+	jrne func_lomem
+	incw y  
 	call expression 
 	cpw x,#free_ram 
 	jrult bad_value 
@@ -3345,6 +3402,9 @@ clear_prog_space:
 	_strxz progend 
 	call free 
 	_next 
+func_lomem:
+	_ldxz lomem 
+	ret 
 bad_value:
 	ld a,#ERR_RANGE 
 	jp tb_error 
@@ -3357,6 +3417,8 @@ free:
 	call puts 
 	ret 
 bytes_free: .asciz "bytes free" 
+
+
 
 ;-----------------------------
 ; BASIC: CLS 
@@ -3669,6 +3731,7 @@ kword_until:
 ; respect alphabetic order for BASIC names from Z-A
 ; this sort order is for a cleaner WORDS cmd output. 	
 dict_end:
+	_dict_entry,4,"XRAM",XRAM_IDX
 	_dict_entry,5,"WORDS",WORDS_IDX 
 	_dict_entry,5,"UNTIL",UNTIL_IDX 
 	_dict_entry,4,"TONE",TONE_IDX 

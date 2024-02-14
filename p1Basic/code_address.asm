@@ -134,5 +134,6 @@ code_addr:
     _code_entry cmd_renum,RENUM_IDX 
     _code_entry kword_do, DO_IDX 
     _code_entry kword_until, UNTIL_IDX
-    _code_entry func_muldiv, MULDIV_IDX  
+    _code_entry func_muldiv, MULDIV_IDX
+    _code_entry xram_array, XRAM_IDX   
     CMD_LAST=TOK_IDX-1

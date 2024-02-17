@@ -6,5 +6,5 @@ Il y a 2 binaires
 
 * **pomme_1_hsi16m.bin** est le binaire à utiliser lorsque l'oscillateur interne de 16Mhz est utilisé comme *master clock*.
 
-
 ![schématique du pomme-I](../docs/pomme-IS-schematic.png) 
+

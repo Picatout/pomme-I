@@ -25,6 +25,10 @@
 ;  over 6502 cpu. 
 ;--------------------------------
 
+MON_MAJOR=1 
+MON_MINOR=1 
+MON_REV=0
+
 
     .module MONITOR
 
@@ -55,9 +59,6 @@ XAM_BLOK='.
 STOR=': 
 QUOTE='" 
 
-MON_MAJOR=1 
-MON_MINOR=0 
-MON_REV=3
 
 ; Modeled on Apple I monitor Written by Steve Wozniak 
 
@@ -104,6 +105,11 @@ NEXTCHAR:
     jreq FORMAT 
     cp a,#CTRL_F
     jreq GO_FORTH 
+    cp a,#'? 
+    jrne 1$
+    call print_help
+    jra GETLINE 
+1$:
     cp a,#QUOTE
     jreq UPPER
     cp a,#'`
@@ -282,4 +288,31 @@ ascii:
     _swreset
 
 .endif 
+
+;---------------------------
+;  command '?' 
+; display kernel functions
+;---------------------------
+    PREV=1 
+print_help::
+    PUSH #255 
+    ld a,#1 
+    _straz farptr 
+    ldw x,#p1Kernel_help
+1$:
+    _strxz ptr16 
+    ldf a,[farptr]
+    jrne 2$
+    tnz (PREV,sp)
+    jreq 9$
+2$:
+    ld (PREV,sp),a 
+    call uart_putc
+    _ldxz ptr16 
+    incw x 
+    jra 1$ 
+9$: _drop 1     
+    ret 
+
+    .include "kernel.hlp" 
 

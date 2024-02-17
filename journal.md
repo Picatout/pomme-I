@@ -1,3 +1,10 @@
+
+### 2024-02-17
+
+* Ajout du fichier [kernel.hlp](kernel.hlp). Ce fichier est une référence rapide aux fonction du noyau et est compilé dans la mémoire étendue.
+
+* Ajout de la commande **?** dans [p1Monitor.asm](p1Monitor.asm). Cette commande imprime à l'écran l'aide rapide sur les fonctions du noyaux.
+
 ### 2024-02-13
 
 * Modifié **XRAM@** et **XRAM!**  dans [p1Forth](p1Forth/p1Forth.asm). Puisqu'il s'agit d'entiers une addresse simple est suffisante. L'adresse étant multipliée par 2 pour aligné sur les mots de 16 bits.

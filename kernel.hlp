@@ -1,0 +1,55 @@
+;;
+; Copyright Jacques Deschênes 2023,24  
+; This file is part of pomme-1 
+;
+;     pomme-1 is free software: you can redistribute it and/or modify
+;     it under the terms of the GNU General Public License as published by
+;     the Free Software Foundation, either version 3 of the License, or
+;     (at your option) any later version.
+;
+;     pomme-1 is distributed in the hope that it will be useful,
+;     but WITHOUT ANY WARRANTY; without even the implied warranty of
+;     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;     GNU General Public License for more details.
+;
+;     You should have received a copy of the GNU General Public License
+;     along with pomme-1.  If not, see <http://www.gnu.org/licenses/>.
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;   p1Kernel help 
+;   quick card 
+;   diplayed in p1Monitor 
+;   using '?' command 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    .area HELP (ABS)
+    .org 0x10000
+
+p1Kernel_help:
+
+.asciz "\n                 KERNEL SERVICES\n"
+.asciz "  CODE | FUNCTION | INPUT | OUTPUT      | DESCRIPTION   \n"
+.asciz "--------------------------------------------------------------\n"
+.asciz "   0   | RESET    | NONE  | NONE        | reset computer\n"
+.asciz "   1   | TICK     | NONE  | X=MSEC      | return msec counter\n"
+.asciz "   2   | PUTCHAR  | X=CHR | NONE        | print char\n"
+.asciz "   3   | GETCHAR  | NONE  | A=CHAR      | get char from term\n"
+.asciz "   4   | CHAR?    | NONE  | A=0,-1      | char received?\n"
+.asciz "   5   | CLS      | NONE  | NONE        | clear term screen\n"
+.asciz "   6   | DELBACK  | NONE  | NONE        | delete last char\n"
+.asciz "   7   | GETLINE  | XL=buffer length    |\n" 
+.asciz "       |          | XH=line length      |\n"
+.asciz "       |          |  Y=buffer address   |\n" 
+.asciz "       |          |       | A=LNLEN     | read line from term\n"
+.asciz "   8   | PUTS     | X=STR | NONE        | print string\n"
+.asciz "   9   | PRT_INT  | X=INT |             |\n" 
+.asciz "       |          | A=SGN | A=LEN       | print integer\n"
+.asciz "  10   | SET_TMR  | X=INT | NONE        | set countdown timer\n"
+.asciz "  11   | TIMEOUT? | NONE  | A=0,-1      | check time out\n"
+.asciz "  12   | TONE     | X=MSEC|             |\n"  
+.asciz "       |          | Y=FREQ| NONE        | generate tone\n"
+.asciz "  13   | FILE OP  | X=FCB | X=FCB       | file operation\n"
+.asciz "  14   | RAND     | NONE  | X=UINT      | get random #\n"
+.asciz "  15   | SEED     | X=0,n | NONE        | seed prng\n"
+.byte 0 

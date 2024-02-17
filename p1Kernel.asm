@@ -30,8 +30,8 @@
 ;------------------------
 
 KERNEL_MAJOR = 1
-KERNEL_MINOR = 0 
-KERNEL_REV = 6
+KERNEL_MINOR = 1 
+KERNEL_REV = 0
 
 kernel_name: .asciz "p1Kernel " 
 kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"
@@ -124,18 +124,22 @@ syscall_handler:
     cpl a 
     jra syscall_exit
 11$: 
-    _syscode START_TONE , 12$    
+    _syscode TONE , 12$    
     call tone 
     jra syscall_exit 
 12$: 
-    _syscode GET_RND , 13$
+    _syscode FILE_OP, 13$
+    call file_op 
+    jra syscall_exit 
+13$:
+    _syscode GET_RND , 14$
     call prng 
     jra syscall_exit 
-13$: 
-    _syscode SEED_PRNG , 14$
+14$: 
+    _syscode SEED_PRNG , 15$
     call set_seed 
     jra syscall_exit 
-14$: 
+15$: 
 ; bad codes ignored 
 
 syscall_exit: ; jump after trap instruction 

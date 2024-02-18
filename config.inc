@@ -7,7 +7,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 P1_MAJOR=1 
 P1_MINOR=2
-P1_REV=1
+P1_REV=2
+
 
 
 DEBUG=0 ; set to 1 to embed debug support code.

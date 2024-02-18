@@ -1,3 +1,8 @@
+### 2024-02-18
+
+* Suprimé l'affichage de la version du kernel puisque cette version se confond avec l'affichage de la version de pomme-I puisque le kernel fait parti du firmware de base du pomme-I.
+
+* Simplifié **timer4_init** dans [hardware_init.asm](hardware_init.asm).
 
 ### 2024-02-17
 

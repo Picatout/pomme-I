@@ -227,23 +227,19 @@ timer2_init:
 timer4_init:
 	bset CLK_PCKENR1,#CLK_PCKENR1_TIM4
 	bres TIM4_CR1,#TIM4_CR1_CEN 
-	ld a,fmstr 
-	ldw x,#0xe8 
+	ld a,fmstr  ; Mhz 
+; fmstr X = a*250 
+; A=2 ; 2^2=4 	
+	ldw x,#250
 	mul x,a
-	pushw x 
-	ldw x,#3 
-	mul x,a 
-	swapw x 
-	addw x,(1,sp) 
-	_drop 2  
-	clr a 
+	ld a,#2  
+; divide x/2 until <256
+; inc a for each division 
 0$:	 
-	cpw x,#256 
-	jrmi 1$ 
 	inc a 
 	srlw x 
-	jra 0$ 
-1$:
+	cpw x,#256 
+	jrpl 0$  
 	ld TIM4_PSCR,a 
 	ld a,xl 
 	ld TIM4_ARR,a
@@ -337,7 +333,6 @@ cold_start:
     bset LED_PORT+GPIO_CR1,#LED_BIT
     bset LED_PORT+GPIO_CR2,#LED_BIT
     bset LED_PORT+ GPIO_DDR,#LED_BIT
-	bres LED_PORT+GPIO_ODR,#LED_BIT ; turn on user LED  
 ; disable schmitt triggers on Arduino CN4 analog inputs
 	mov ADC_TDRL,0x3f
 ; select internal clock no divisor: 16 Mhz 	
@@ -356,9 +351,6 @@ cold_start:
 	call beep_1khz  ;
 	ldw x,#-1
 	call set_seed 
-
-;jp spi_ram_test 
-;jp eeprom_test 
 	call clr_screen
 	ldw x,#pomme_1 
 	ldw y,#p1Copyright
@@ -368,7 +360,6 @@ cold_start:
 	call app_info
 	_drop 3 
 	call show_cpu_frequency
-    call kernel_show_version  	
 	jp WOZMON
 
 pomme_1: .asciz "pomme I "
@@ -388,51 +379,3 @@ cpu_freq: .asciz "Fcpu= "
 scale_factor: .asciz "Mhz\n" 
 
 
-.if 0
-	bset sys_flags,#FSYS_UPPER 
-call new_line 	
-test: ; test compiler 
-	ld a,#'> 
-	call putc 
-	call readln 
-	call compile 
-	call dump_code 
-	jra test 
-
-dump_code: 
-	ldw y,#pad 
-	push #16  
-	ld a,(2,y)
-	push a
-	ld a,yh 
-	call print_hex 
-	ld a,yl  
-	call print_hex
-	ldw x,#2 
-	call spaces 
-1$: 
-	ld a,(y)
-	call print_hex 
-	call space 
-	incw y
-	dec (2,sp)
-	jrne 2$ 
-	call new_line 
-	ld a,yh 
-	call print_hex 
-	ld a,yl  
-	call print_hex
-	ldw x,#2 
-	call spaces 
-	ld a,#16
-	ld (2,sp),a 
-2$:
-	dec (1,sp) 
-	jrne 1$ 
-9$: _drop 2 
-	call new_line 
-	ldw x,#pad   
-	ld a,(2,x)
-	call prt_basic_line 
-	ret 	
-.endif 

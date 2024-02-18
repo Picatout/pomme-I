@@ -29,22 +29,6 @@
 ; STM8 TRAP instruction
 ;------------------------
 
-KERNEL_MAJOR = 1
-KERNEL_MINOR = 1 
-KERNEL_REV = 1
-
-kernel_name: .asciz "p1Kernel " 
-kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"
-
-kernel_show_version:
-    ldw x,#kernel_name 
-    ldw y,#kernel_cpr
-    push #KERNEL_REV 
-    push #KERNEL_MINOR 
-    push #KERNEL_MAJOR  
-    call app_info 
-    _drop 3 
-    ret 
 
 ;;-------------------------------
     .area CODE
@@ -177,6 +161,7 @@ Timer4UpdateHandler:
     jrne 2$ 
     bres sys_flags,#FSYS_TONE   
 2$: 
+_led_toggle
 	iret 
 
 

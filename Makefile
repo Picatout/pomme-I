@@ -40,10 +40,10 @@ pomme: clean kernel $(EMBEDDED)
 	@ls -l  $(BUILD)$(BOARD)/$(NAME).bin 
 	# 
 
-hse_x24m: pomme 
+hse24m: pomme # cristal externe 24Mhz 
 	cp $(BUILD)$(BOARD)/$(NAME).bin dist/pomme_1_hse24m.bin 
 
-hsi_16m: pomme 
+hsi16m: pomme # oscillateur interne 16Mhz 
 	cp $(BUILD)$(BOARD)/$(NAME).bin dist/pomme_1_hsi16m.bin 
 
 
@@ -103,10 +103,10 @@ flash:
 	# "******************"
 	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w $(BUILD)$(BOARD)/$(NAME).ihx 
 
-flash_hse24m:
+flash_hse24m: hse24m 
 	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w dist/pomme_1_hse24m.bin 
 
-flash_hsi16m: hsi_16m
+flash_hsi16m: hsi16m
 	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w dist/pomme_1_hsi16m.bin 	 
 
 

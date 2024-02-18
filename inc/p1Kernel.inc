@@ -31,9 +31,8 @@
 ;    4  | querychar      | none     | A=0,-1
 ;    5  | clr_screen     | none     | none 
 ;    6  | delback        | none     | none 
-;    7  | getline        | xl=buflen | A= line length
-;       |                | xh=lnlen  |  
-;       |                | y=bufadr | 
+;    7  | getline        | X=ln_len | A= line length
+;       |                |          | X=buffer
 ;    8  | puts           | X=*str   | none 
 ;    9  | print_int      | X=int16  | none 
 ;       |                | A=unsigned| A=string length 

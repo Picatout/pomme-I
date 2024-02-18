@@ -1,6 +1,10 @@
 
 ### 2024-02-17
 
+* Correction dans [p1Kernle.asm](p1Kernel.asm) operation **GETLN**. 
+
+* Correction dans [kernel.hlp](kernel.hlp) l'information sur **GETLN** était incorrecte.
+
 * Ajout du fichier [kernel.hlp](kernel.hlp). Ce fichier est une référence rapide aux fonction du noyau et est compilé dans la mémoire étendue.
 
 * Ajout de la commande **?** dans [p1Monitor.asm](p1Monitor.asm). Cette commande imprime à l'écran l'aide rapide sur les fonctions du noyaux.

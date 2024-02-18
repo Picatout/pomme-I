@@ -31,7 +31,7 @@
 
 KERNEL_MAJOR = 1
 KERNEL_MINOR = 1 
-KERNEL_REV = 0
+KERNEL_REV = 1
 
 kernel_name: .asciz "p1Kernel " 
 kernel_cpr: .asciz " Jacques Deschênes (c) 2023,24\n"
@@ -102,6 +102,7 @@ syscall_handler:
     jra syscall_exit 
 6$: 
     _syscode GETLN , 7$
+    ld a,xl
     call readln  
     jra syscall_exit 
 7$: 

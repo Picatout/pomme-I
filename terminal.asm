@@ -828,7 +828,6 @@ display_line:
 ; BS      delete last character 
 ; input:
 ;   A     initial line length
-;   X     initial string  
 ; output:
 ;   A     line length 
 ;   X     tib address 

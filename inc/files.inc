@@ -35,7 +35,7 @@ FCB_NAME=2 ; 16 BYTES
 FCB_BUFFER=FCB_NAME+FNAME_MAX_LEN ; address data buffer, 2 BYTES 
 FCB_OPERATION=FCB_BUFFER+2 ; file operation 1 BYTE 
 FCB_OP_STATUS=FCB_OPERATION+1 ; operation status 1 BYTE  
-FCB_SIZE =FCB_OP_STATUS+1 ; BYTES 
+FCB_SIZE =FCB_OP_STATUS+1 ; 22 BYTES 
 
 ; file operations
 FILE_NOP=0 ; no operation  

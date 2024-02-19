@@ -11,13 +11,15 @@ then
     mkdir "build/stm8s207k8"
 fi 
 
+if [ -z $1 ]; then 
 # build HSI 16Mhz version 
-sed s/HSI=0/HSI=1/ config.inc
-make hsi16m
+sed -i 's/HSI=0/HSI=1/' config.inc 
+make -B hsi16m
 
 # build HSE 24Mhz version 
-sed s/HSI=1/HSI=0/ config.inc
-make hse24m
+sed -i 's/HSI=1/HSI=0/' config.inc
+make -B hse24m
+fi 
 
 if [  ! -z $1 ]; then 
     if [ $1 == "flash_hsi" ]; then 

@@ -34,7 +34,7 @@ HSE=0
 .else
 HSE=1
 FMSTR=24 
-CLK_SRC=CLK_SWR_HSE   
+CLK_SRC=CLK_SWR_HSE
 .endif 
 
 

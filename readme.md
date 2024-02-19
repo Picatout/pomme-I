@@ -13,6 +13,41 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2024-02-19
+
+Changement à la méthode pour compiler et flasher le binaire.  J'ai créer le script  bash   [build.sh](build.sh) pour simplifier la construciton des 2 versions.  
+```
+#!/bin/bash 
+
+# usage:
+# ./build.sh  [ flash_hsi|flash_hse ]
+# flash_hsi -> flash 16Mhz internal oscillator version after build
+# flash_hse -> flash external 24Mhz crystal version after build
+# no option -> build both versions without flashing 
+
+if [ ! -d "build/stm8s207k8" ] 
+then 
+    mkdir "build/stm8s207k8"
+fi 
+
+# build HSI 16Mhz version 
+sed s/HSI=0/HSI=1/ config.inc
+make hsi16m
+
+# build HSE 24Mhz version 
+sed s/HSI=1/HSI=0/ config.inc
+make hse24m
+
+if [  ! -z $1 ]; then 
+    if [ $1 == "flash_hsi" ]; then 
+            make flash_hsi16m 
+    elif [ $1 == "flash_hse" ]; then
+            make flash_hse24m  
+    fi
+fi 
+```
+
+
 ## 2024-02-12
 
 1. J'ai créé un dossier [dist](dist/readme.md) qui contient les binaires pour programmer la carte NUCLEO-8S207K8. 

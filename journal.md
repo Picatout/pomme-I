@@ -1,3 +1,7 @@
+### 2024-02-19
+
+* Ajouter **build.sh** pour automatiser la construction des 2 version du binaire en utilisant **sed** pour modifier la variable **HSI** dans [config.inc](config.inc).
+
 ### 2024-02-18
 
 * Suprimé l'affichage de la version du kernel puisque cette version se confond avec l'affichage de la version de pomme-I puisque le kernel fait parti du firmware de base du pomme-I.

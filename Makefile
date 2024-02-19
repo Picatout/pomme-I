@@ -96,17 +96,10 @@ usr_test:
 	$(SDAS) -g -l -o $(BUILD)$(BOARD)/square.rel square.asm  
 
 
-flash:
-	#
-	# "******************"
-	# "flashing $(BOARD) "
-	# "******************"
-	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w $(BUILD)$(BOARD)/$(NAME).ihx 
-
-flash_hse24m: hse24m 
+flash_hse24m: 
 	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w dist/pomme_1_hse24m.bin 
 
-flash_hsi16m: hsi16m
+flash_hsi16m:
 	$(FLASH) -c $(PROGRAMMER) -p $(BOARD) -s flash -w dist/pomme_1_hsi16m.bin 	 
 
 

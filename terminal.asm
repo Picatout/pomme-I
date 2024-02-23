@@ -832,7 +832,7 @@ display_line:
 ;   A     line length 
 ;   X     tib address 
 ;--------------------------
-MAX_LEN=60
+MAX_LEN=74
 	LN_LEN=1
 	CPOS=2
 	CHAR=3 

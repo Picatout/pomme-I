@@ -1,5 +1,5 @@
 ;;
-; Copyright Jacques Deschênes 2023  
+; Copyright Jacques Deschênes 2023,24  
 ; This file is part of pomme-1 
 ;
 ;     pomme-1 is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ MON_REV=0
     .module MONITOR
 
     .include "config.inc"
-
+    
     .area CODE
 
 ;--------------------------------------------------
@@ -145,28 +145,23 @@ NEXTITEM:
     jreq SETMODE
     cp a,#'R 
     jreq RUN
+    cp a,#'S 
+    jrne 1$
+    call asm_syscall
+    jra NEXTITEM 
+1$:
+    cp a,#']
+    jrne 2$ 
+    _ldxz STORADR
+    ld a,#0x81 ; RET machine code 
+    ld (x),a 
+    incw x 
+    _strxz STORADR 
+    incw y 
+    jra NEXTITEM
+2$:
     _stryz YSAV ; save for comparison
-    clrw x 
-NEXTHEX:
-    ld a,(tib,y)
-    xor a,#0x30 
-    cp a,#10 
-    jrmi DIG 
-    cp a,#0x71 
-    jrmi NOTHEX 
-    sub a,#0x67
-DIG: 
-    push #4
-    swap a 
-HEXSHIFT:
-    sll a 
-    rlcw x  
-    dec (1,sp)
-    jrne HEXSHIFT
-    pop a 
-    incw y
-    jra NEXTHEX
-NOTHEX:
+    call get_hex
     cpw y,YSAV 
     jrne GOTNUMBER
     jp GETLINE ; no hex number  
@@ -242,52 +237,127 @@ ECHO:
     call uart_putc 
     RET 
 
-;----------------------------
-; code to test 'R' command 
-; blink LED on NUCLEO board 
-;----------------------------
-.if 0
-r_test:
-    bset PC_DDR,#5
-    bset PC_CR1,#5
-1$: bcpl PC_ODR,#5 
-; delay 
-    ld a,#4
-    clrw x
-2$:
-    decw x 
-    jrne 2$
-    dec a 
-    jrne 2$ 
-; if key exit 
-    btjf UART_SR,#UART_SR_RXNE,1$
-    ld a,UART_DR 
-; reset MCU to ensure monitor
-; with peripherals in known state
-    _swreset
-
-;------------------------------------
-; another program to test 'R' command
-; print ASCII characters to terminal
-; in loop 
-;-------------------------------------
-ascii:
-    ld a,#SPACE
-1$:
-    call uart_putc 
-    inc a 
-    cp a,#127 
-    jrmi 1$
+;---------------------------------
+; parse line and assemble 
+; a syscall at XAMADR 
+; format: 
+;   xxxxF code [X val] [Y val]
+;--------------------------------
+asm_syscall:
+    incw y 
+    _stryz YSAV 
+; get service call code     
+    call get_hex 
+    cpw y,YSAV
+    jreq 9$ ; no code bad format 
+    _stryz YSAV 
+    _ldyz STORADR  
+    ld a,#0xA6  ; LD A,#imm  machine code 
+    ld (y),a 
+    incw y 
+    ld a,xl ; syscall code  
+    ld (y),a
+    incw y 
+    _stryz STORADR
+; check if X parameter     
+    _ldyz YSAV 
+    call get_hex 
+    cpw Y,YSAV 
+    jreq 8$ ; no X parameter 
+    _stryz YSAV 
+    _ldyz STORADR  
+    ld a,#0xAE ; LDW X,#imm  machine code 
+    ld (y),a 
+    incw y 
+    ld a,xh  ; high  byte imm  
+    ld (y),a 
+    incw y 
+    ld a,xl ; low byte imm 
+    ld (y),a 
+    incw y 
+    _stryz STORADR 
+; check for Y parameter 
+    _ldyz YSAV
+    call get_hex 
+    cpw y,YSAV 
+    jreq 8$ ; no Y PARAMETER 
+    _ldyz STORADR  
+    ld a,#0x90  ; LDW Y,#imm  machine code prefix  
+    ld (y),a 
+    incw y 
+    ld a,#0xAE  ; LDW Y,#imm machine code 
+    ld (y),a 
+    incw y 
+    ld a,xh ; high byte imm 
+    ld (y),a 
+    incw y 
+    ld a,xl  ; low byte imm 
+    ld (y),a 
+    incw y 
+    _stryz STORADR 
+8$: ld a,#0x83 ; TRAP machine code 
+    _ldxz STORADR
+    ld (x),a
+    incw x  
+    _strxz STORADR 
     ld a,#CR 
-    call uart_putc 
-; if key exit 
-    btjf UART_SR,#UART_SR_RXNE,ascii
-    ld a,UART_DR 
-; reset MCU to ensure monitor
-; with peripherals in known state
-    _swreset
+    call putc 
+    ld a,xh 
+    call print_hex 
+    ld a,xl 
+    call print_hex 
+9$: 
+    ret  
 
-.endif 
+
+;-------------------------
+; parse line for 
+; hexadecimal number 
+; input;
+;   Y   offset in tib 
+; output:
+;   A     0 not a number  
+;   X     value 
+;   Y     updated if hex 
+;-------------------------
+get_hex:
+    call skip_spaces 
+    clrw x
+    decw y  
+NEXTHEX:
+    incw y 
+    ld a,(tib,y)
+    cp a,#CR 
+    jreq NOTHEX 
+    xor a,#0x30 
+    cp a,#10 
+    jrmi DIG 
+    cp a,#0x71 
+    jrmi NOTHEX 
+    sub a,#0x67
+DIG: 
+    push #4
+    swap a 
+HEXSHIFT:
+    sll a 
+    rlcw x  
+    dec (1,sp)
+    jrne HEXSHIFT
+    pop a 
+    jra NEXTHEX
+NOTHEX:
+    ret 
+
+
+skip_spaces:
+1$:
+    ld a,(tib,y)
+    cp a,#SPACE 
+    jrne 2$
+    incw y 
+    jra 1$
+2$: _stryz YSAV 
+    ret 
 
 ;---------------------------
 ;  command '?' 
@@ -314,5 +384,6 @@ print_help::
 9$: _drop 1     
     ret 
 
+;    .include "stm8asm.asm"
     .include "kernel.hlp" 
 

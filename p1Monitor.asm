@@ -147,19 +147,26 @@ NEXTITEM:
     jreq RUN
     cp a,#'S 
     jrne 1$
-    call asm_syscall
+    call asm_syscall ; assemble syscall 
     jra NEXTITEM 
 1$:
+    cp a,#'@
+    jrne 2$
+    call asm_file_op ; assemble file operation 
+    _ldyz YSAV
+    jra NEXTITEM
+2$:
     cp a,#']
-    jrne 2$ 
+    jrne 3$ 
     _ldxz STORADR
     ld a,#0x81 ; RET machine code 
     ld (x),a 
     incw x 
-    _strxz STORADR 
+    _strxz STORADR
+    call PRINT_ADDR
     incw y 
     jra NEXTITEM
-2$:
+3$:
     _stryz YSAV ; save for comparison
     call get_hex
     cpw y,YSAV 
@@ -186,6 +193,8 @@ NOTREAD:
 TONEXTITEM:
     jra NEXTITEM 
 RUN:
+    ld a,#CR 
+    call uart_putc
     _ldxz XAMADR 
     call (x)
     jp WOZMON
@@ -210,10 +219,7 @@ NXTPRNT:
     jrne PRDATA 
     ld a,#CR 
     call uart_putc 
-    ld a,xh 
-    call PRBYTE 
-    ld a,xl 
-    call PRBYTE 
+    call PRINT_ADDR 
     ld a,#': 
     call uart_putc 
 PRDATA:
@@ -236,6 +242,12 @@ PRBYTE:
 ECHO:
     call uart_putc 
     RET 
+PRINT_ADDR:
+    ld a,xh 
+    call print_hex 
+    ld a,xl 
+    jp print_hex 
+
 
 ;---------------------------------
 ; parse line and assemble 
@@ -244,8 +256,9 @@ ECHO:
 ;   xxxxF code [X val] [Y val]
 ;--------------------------------
 asm_syscall:
+    ld a,#CR 
+    call uart_putc 
     incw y 
-    _stryz YSAV 
 ; get service call code     
     call get_hex 
     cpw y,YSAV
@@ -281,6 +294,7 @@ asm_syscall:
     call get_hex 
     cpw y,YSAV 
     jreq 8$ ; no Y PARAMETER 
+    _stryz YSAV 
     _ldyz STORADR  
     ld a,#0x90  ; LDW Y,#imm  machine code prefix  
     ld (y),a 
@@ -301,13 +315,159 @@ asm_syscall:
     incw x  
     _strxz STORADR 
     ld a,#CR 
-    call putc 
-    ld a,xh 
-    call print_hex 
-    ld a,xl 
-    call print_hex 
+    call putc
+    call PRINT_ADDR  
+    _ldyz YSAV 
 9$: 
     ret  
+
+;----------------------------------
+; fill fcb structure and 
+; assemble file operation 
+; formats:
+;    xxxxF  op [parameters]
+;    op  {D,E,L,S}
+;    D   list files 
+;    E   file_name erase file 
+;    L   file_name load_addr 
+;    S   file_name buff_addr size 
+;---------------------------------
+asm_file_op:
+    ld a,#CR 
+    call uart_putc 
+    incw y
+    _stryz YSAV  
+    _ldxz STORADR
+    pushw x  
+; code syscall     
+    ld a,#0XA6 ; LD A,#imm  machine code 
+    ld (x),a 
+    incw x 
+    ld a,#FILE_OP ; syscall code 
+    ld (x),a
+    incw x
+;code fcb address in X 
+    ld a,#0xAE ; LDW X,#imm machine code 
+    ld (x),a 
+    incw x 
+    ldw y,#fcb
+    ldw (x),y 
+    addw x,#2
+    ld a,#0x83 ; TRAP  machine code 
+    ld (x),a 
+    incw x 
+    _strxz STORADR
+    _ldyz YSAV   
+    call skip_spaces 
+    incw y 
+    _stryz YSAV 
+    cp a,#'D 
+    jrne 1$ 
+    jp code_dir_op 
+1$: cp a,#'E 
+    jrne 2$ 
+    jp code_erase_op 
+2$: cp a,#'L 
+    jrne 3$
+    jp code_load_op 
+3$: cp a,#'S 
+    jrne 9$
+    jp  code_save_op 
+9$:  
+cancel_op: 
+    popw x
+    _strxz STORADR
+    ld a,#CR 
+    ld (tib,y),a
+    _stryz YSAV  
+    ret 
+
+
+;--------------------
+; parse file name 
+; from tib and 
+; copy it to 
+; fcb 
+;--------------------
+parse_file_name:
+    call skip_spaces 
+    ldw x,#fcb+FCB_NAME 
+1$:
+    ld a,(tib,y) 
+    cp a,#SPACE 
+    jreq 2$ 
+    cp a,#CR 
+    jreq 2$ 
+    ld (x),a 
+    incw x
+    incw y
+    jra 1$ 
+2$:  
+    cpw x,#fcb+FCB_BUFFER 
+    jrpl 4$ 
+    ld (x),a 
+    incw x 
+    jra 2$ 
+4$: 
+    ret 
+
+;-------------------
+; parameter order 
+;  xxxxF D 
+;-------------------    
+code_dir_op:
+    ld a,#FILE_LIST 
+    _straz fcb+FCB_OPERATION      
+    jra save_y 
+
+;--------------------
+; parameters order 
+; xxxxF E file_name 
+;--------------------    
+code_erase_op:
+    ld a,#FILE_ERASE
+    _straz fcb+FCB_OPERATION 
+    call parse_file_name 
+    
+    jra save_y
+
+;----------------------------
+; parameters order 
+; xxxxF L file_name load_addr  
+;-----------------------------    
+code_load_op:
+    ld a,#FILE_LOAD 
+    _straz fcb+FCB_OPERATION 
+    call parse_file_name
+    call get_hex 
+    cpw y,YSAV
+    jreq cancel_op 
+    _strxz fcb+FCB_BUFFER 
+    jra save_y 
+
+;----------------------------
+; parameters order 
+; xxxxF S file_name buff_addr size   
+;-----------------------------    
+code_save_op:
+    ld a,#FILE_SAVE 
+    _straz fcb+FCB_OPERATION 
+    call parse_file_name 
+    call get_hex 
+    cpw y,YSAV 
+    jreq cancel_op 
+    _strxz fcb+FCB_BUFFER 
+    call get_hex 
+    cpw y,YSAV 
+    jreq cancel_op 
+    _strxz fcb+FCB_SIZE 
+save_y:
+    _stryz YSAV 
+    _ldxz STORADR 
+    call PRINT_ADDR
+    _drop 2 
+    ret 
+
 
 
 ;-------------------------

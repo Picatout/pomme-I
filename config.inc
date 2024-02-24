@@ -44,5 +44,6 @@ CLK_SRC=CLK_SWR_HSE
 	.include "inc/gen_macros.inc" 
 	.include "app_macros.inc" 
     .include "arithm16_macros.inc" 
+    .include "inc/p1Kernel.inc" 
     .include "inc/files.inc"
 

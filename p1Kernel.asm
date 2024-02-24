@@ -77,7 +77,7 @@ syscall_handler:
     call qgetc  
     jra syscall_exit
 4$:
-    _syscode CLS,5$ 
+    _syscode CLR_SCR,5$ 
     call clr_screen
     jra syscall_exit 
 5$: 

@@ -52,7 +52,7 @@
     PUTC==2
     GETC==3 
     QCHAR==4
-    CLS==5
+    CLR_SCR==5
     DELBK==6
     GETLN==7 
     PRT_STR==8

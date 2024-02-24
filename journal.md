@@ -1,3 +1,9 @@
+### 2024-02-23
+
+* Ajout de la commande **S** à [p1Monitor](p1Monitor.asm) pour faciliter le codage des appels systèmes.
+
+* Ajout de la commande **@** à [p1Monitor](p1Monitor.asm) pour faciliter le codage des opération sur les fichiers.
+
 ### 2024-02-19
 
 * Ajouter **build.sh** pour automatiser la construction des 2 version du binaire en utilisant **sed** pour modifier la variable **HSI** dans [config.inc](config.inc).

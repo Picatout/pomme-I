@@ -13,6 +13,16 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2024-02-23
+
+[p1Monitor](p1Monitor.asm) version V1.2R0
+
+Plusieurs facilités de programmation de code machine ont étées ajoutées au moniteur.
+
+* La commande **S** facilite le codage des appels système. Cette commande inclus aussi une assistance dans l'initialisation de la structure **fcb** utilisée puor les opération sur les fichiers, i.e. appel système **D**. 
+
+* La commande **]** code une instruction **RET** 
+
 ## 2024-02-19
 
 Changement à la méthode pour compiler et flasher le binaire.  J'ai créer le script  bash   [build.sh](build.sh) pour simplifier la construciton des 2 versions.  

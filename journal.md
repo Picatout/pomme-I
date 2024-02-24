@@ -1,5 +1,9 @@
 ### 2024-02-23
 
+* Ajout de la commande **]** pour compiler le code machine de **RET**.
+
+* Supprimé la commande **@** pour l'intégrer à la commande **S**.
+
 * Ajout de la commande **S** à [p1Monitor](p1Monitor.asm) pour faciliter le codage des appels systèmes.
 
 * Ajout de la commande **@** à [p1Monitor](p1Monitor.asm) pour faciliter le codage des opération sur les fichiers.

@@ -26,7 +26,7 @@
 ;--------------------------------
 
 MON_MAJOR=1 
-MON_MINOR=1 
+MON_MINOR=2 
 MON_REV=0
 
 
@@ -150,12 +150,6 @@ NEXTITEM:
     call asm_syscall ; assemble syscall 
     jra NEXTITEM 
 1$:
-    cp a,#'@
-    jrne 2$
-    call asm_file_op ; assemble file operation 
-    _ldyz YSAV
-    jra NEXTITEM
-2$:
     cp a,#']
     jrne 3$ 
     _ldxz STORADR
@@ -272,6 +266,8 @@ asm_syscall:
     ld (y),a
     incw y 
     _stryz STORADR
+    cp a,#FILE_OP 
+    jreq asm_file_op
 ; check if X parameter     
     _ldyz YSAV 
     call get_hex 
@@ -325,7 +321,6 @@ asm_syscall:
 ; fill fcb structure and 
 ; assemble file operation 
 ; formats:
-;    xxxxF  op [parameters]
 ;    op  {D,E,L,S}
 ;    D   list files 
 ;    E   file_name erase file 
@@ -333,19 +328,8 @@ asm_syscall:
 ;    S   file_name buff_addr size 
 ;---------------------------------
 asm_file_op:
-    ld a,#CR 
-    call uart_putc 
-    incw y
-    _stryz YSAV  
     _ldxz STORADR
     pushw x  
-; code syscall     
-    ld a,#0XA6 ; LD A,#imm  machine code 
-    ld (x),a 
-    incw x 
-    ld a,#FILE_OP ; syscall code 
-    ld (x),a
-    incw x
 ;code fcb address in X 
     ld a,#0xAE ; LDW X,#imm machine code 
     ld (x),a 
@@ -391,16 +375,18 @@ cancel_op:
 ;--------------------
 parse_file_name:
     call skip_spaces 
-    ldw x,#fcb+FCB_NAME 
+    ldw x,#fcb+FCB_NAME      
 1$:
     ld a,(tib,y) 
     cp a,#SPACE 
     jreq 2$ 
     cp a,#CR 
-    jreq 2$ 
-    ld (x),a 
-    incw x
-    incw y
+    jreq 2$
+    incw y 
+    cpw x,#fcb+FCB_BUFFER
+    jrpl 1$
+    ld (x),a   
+    incw x 
     jra 1$ 
 2$:  
     cpw x,#fcb+FCB_BUFFER 
@@ -428,7 +414,8 @@ code_erase_op:
     ld a,#FILE_ERASE
     _straz fcb+FCB_OPERATION 
     call parse_file_name 
-    
+    tnz fcb+FCB_NAME 
+    jreq cancel_op 
     jra save_y
 
 ;----------------------------
@@ -439,6 +426,8 @@ code_load_op:
     ld a,#FILE_LOAD 
     _straz fcb+FCB_OPERATION 
     call parse_file_name
+    tnz fcb+FCB_NAME 
+    jreq cancel_op 
     call get_hex 
     cpw y,YSAV
     jreq cancel_op 
@@ -453,14 +442,18 @@ code_save_op:
     ld a,#FILE_SAVE 
     _straz fcb+FCB_OPERATION 
     call parse_file_name 
+    tnz fcb+FCB_NAME 
+    jreq cancel_op 
     call get_hex 
     cpw y,YSAV 
     jreq cancel_op 
     _strxz fcb+FCB_BUFFER 
     call get_hex 
     cpw y,YSAV 
-    jreq cancel_op 
-    _strxz fcb+FCB_SIZE 
+    jrne 1$
+    jp cancel_op  
+1$:
+    _strxz fcb+FCB_DATA_SIZE 
 save_y:
     _stryz YSAV 
     _ldxz STORADR 

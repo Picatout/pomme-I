@@ -1,3 +1,13 @@
+### 2024-02-25
+
+* Abandon pour le moment de remplacé [p1Monitor](p1Monitor.asm) par [mona](mona/mona.asm).
+
+* [p1Monitor](p1Monitor.asm) version **V1.2R1**  correction mineure pour faire un retour à la ligne après l'affichage de l'adresse du prochain point d'assemblage.
+
+### 2024-02-24
+
+* Bifurcation du projet, remplacement de [p1Monitor](p1Monitor.asm) par [mona](mona/mona05.asm).
+
 ### 2024-02-23
 
 * Ajout de la commande **]** pour compiler le code machine de **RET**.

@@ -27,7 +27,7 @@
 
 MON_MAJOR=1 
 MON_MINOR=2 
-MON_REV=0
+MON_REV=1
 
 
     .module MONITOR
@@ -310,9 +310,11 @@ asm_syscall:
     ld (x),a
     incw x  
     _strxz STORADR 
+;    ld a,#CR 
+;    call uart_putc
+    call PRINT_ADDR
     ld a,#CR 
-    call putc
-    call PRINT_ADDR  
+    call uart_putc  
     _ldyz YSAV 
 9$: 
     ret  
@@ -458,6 +460,8 @@ save_y:
     _stryz YSAV 
     _ldxz STORADR 
     call PRINT_ADDR
+    ld a,#CR 
+    call uart_putc
     _drop 2 
     ret 
 

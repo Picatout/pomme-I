@@ -17,7 +17,7 @@ Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour
 
 [p1Monitor](p1Monitor.asm) version V1.3R0
 
-Ajout d'un désassembleur au moniteur. Le désassembleur affiche 24 lignes puis fait une pause. la barre d'espacement affiche la page suivant et toute autre touche revient au moniteur.
+Ajout d'un désassembleur au moniteur. Le désassembleur affiche 24 lignes puis fait une pause. la barre d'espacement affiche la page suivante et toute autre touche revient au moniteur.
 ```
 #6000@
 

@@ -26,8 +26,8 @@
 ;--------------------------------
 
 MON_MAJOR=1 
-MON_MINOR=2 
-MON_REV=1
+MON_MINOR=3 
+MON_REV=0
 
 
     .module MONITOR
@@ -151,7 +151,7 @@ NEXTITEM:
     jra NEXTITEM 
 1$:
     cp a,#']
-    jrne 3$ 
+    jrne 2$ 
     _ldxz STORADR
     ld a,#0x81 ; RET machine code 
     ld (x),a 
@@ -160,6 +160,11 @@ NEXTITEM:
     call PRINT_ADDR
     incw y 
     jra NEXTITEM
+2$:
+    cp a,#'@ 
+    jrne 3$ 
+    call stm8_dasm 
+    jp GETLINE  
 3$:
     _stryz YSAV ; save for comparison
     call get_hex

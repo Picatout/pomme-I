@@ -1,5 +1,7 @@
 ### 2024-02-25
 
+* Ajout d'un désassembleur [p1Monitor](p1Monitor.asm). Accessible avec la commande **@**.
+
 * Abandon pour le moment de remplacé [p1Monitor](p1Monitor.asm) par [mona](mona/mona.asm).
 
 * [p1Monitor](p1Monitor.asm) version **V1.2R1**  correction mineure pour faire un retour à la ligne après l'affichage de l'adresse du prochain point d'assemblage.

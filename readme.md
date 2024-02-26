@@ -13,6 +13,29 @@ J'ai nommé le fichier principal de ce projet [stm8_WozBASIC.asm](stm8_WozBASIC.
 
 Le nom que j'ai choisi pour ce projet révèle un certain penchant pour l'humour absurde. 
 
+## 2024-02-25
+
+[p1Monitor](p1Monitor.asm) version V1.3R0
+
+Ajout d'un désassembleur au moniteur. Le désassembleur affiche 24 lignes puis fait une pause. la barre d'espacement affiche la page suivant et toute autre touche revient au moniteur.
+```
+#6000@
+
+6000: 9B
+6000	9B               SIM
+6001	AD 0C            CALLR 600F 
+6003	25 19            JRC 601E 
+6005	CE 48 7E         LDW X,487E 
+6008	A3 55 AA         CPW X,#55AA 
+600B	27 11            JREQ 601E 
+600D	20 16            JRA 6025 
+600F	C6 80 00         LD A,8000 
+6012	A1 82            CP A,#82 
+6014	27 06            JREQ 601C 
+6016	A1 AC            CP A,#AC 
+6018	27 02            JREQ 601C 
+```
+
 ## 2024-02-23
 
 [p1Monitor](p1Monitor.asm) version V1.2R0

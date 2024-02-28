@@ -6,7 +6,7 @@
 ;; version du projet pomme-I
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 P1_MAJOR=1 
-P1_MINOR=3
+P1_MINOR=4
 P1_REV=0
 
 

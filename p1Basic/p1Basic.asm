@@ -45,8 +45,8 @@
 ;  p1BASIC VERSION 
 ;--------------------------------
 	PB_MAJOR=1
-	PB_MINOR=1
-	PB_REV=0
+	PB_MINOR=2
+	PB_REV=1
 
     .module P1_BASIC 
 
@@ -2010,6 +2010,45 @@ func_xram_read:
 	_drop VSIZE 
 	ret 
 
+;-------------------------------------------
+; BASIC: PROM (address)=expression 
+;        ?|var = PROM(address)
+; write or read to MCU EEPROM  
+; adress -> {0..$0x1FF}
+;-------------------------------------------
+	ADR=1
+	VSIZE=2
+prom_array:
+	call func_args 
+	cp a,#1 
+	jreq 1$
+	jp syntax_error
+0$: 
+	ld a,#ERR_RANGE 
+	jp tb_error 
+1$:
+	ldw x,(ADR,sp)
+	sllw x 
+	cpw x,#EEPROM_SIZE
+	jrpl 0$ 
+	addw x,#EEPROM_BASE
+	ldw (ADR,sp),x 
+	ld a,(y)
+	cp a,#REL_EQU_IDX 
+	jrne func_prom_read 
+	incw y 
+	call expression 
+	pushw y 
+	ldw y,(ADR+2,sp) 
+	call eeprom_write_2bytes 
+	popw y 
+	_drop VSIZE 
+	_next 
+func_prom_read:
+	ldw x,(x)
+	_drop VSIZE 
+	ret 
+
 
 ;--------------------
 ; BASIC: POKE addr,byte
@@ -3751,6 +3790,7 @@ dict_end:
 	_dict_entry,6,"RETURN",RET_IDX
 	_dict_entry,5,"RENUM",RENUM_IDX 
 	_dict_entry 3,"REM",REM_IDX
+	_dict_entry,4,"PROM",PROM_IDX 
 	_dict_entry 5,"PRINT",PRINT_IDX 
 	_dict_entry,4,"POKE",POKE_IDX 
 	_dict_entry,4,"PEEK",PEEK_IDX 

@@ -31,8 +31,8 @@
 ;*********** Version ***************************
 ;***********************************************
 MAJOR     =     5         ;major release version
-MINOR     =     1         ;minor extension
-REV       =     3         ;revision 
+MINOR     =     2         ;minor extension
+REV       =     0         ;revision 
 
 	.module EFORTH
          .optsdcc -mstm8
@@ -587,6 +587,10 @@ EXIT:
         ADDW X,#2*CELLL 
         JP (Y)
 
+;;;;;;;;;;;;;;;;;;;;;;;
+;;; SPI RAM access  ;;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
 ;-------------------------------
 ; transfert addres on TOS 
 ; to farptr 
@@ -652,10 +656,10 @@ xram_blk_param: ; ( cnt b -- )
         RET 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;       XRAM-BLKC@ ( cnt b d -- )
+;       XRAM-BLK@ ( cnt b d -- )
 ; read cnt bytes from spi ram to b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER,XRAM_BLK_CAT,11,"XRAM-BLK-C@"
+        _HEADER,XRAM_BLK_AT,9,"XRAM-BLK@"
         CALL    xram_blk_param
         call    spi_ram_read 
         POPW    X 
@@ -666,11 +670,133 @@ xram_blk_param: ; ( cnt b -- )
 ;       XRAM-BLK! ( cnt b d -- )
 ; write cnt bytes to spi ram from b 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        _HEADER XRAM_BLK_CSTO,11,"XRAM-BLK-C!"
+        _HEADER XRAM_BLK_STO,9,"XRAM-BLK!"
         CALL    xram_blk_param
         call    spi_ram_write  
         POPW    X 
         _DDROP 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; MCU EEPROM access   ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+EEROM_ADDR: ; ( a  -- )
+        LDW Y,X 
+        LDW Y,(Y)
+        SLLW Y 
+        ADDW Y,#EEPROM_BASE 
+        RET  
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PROM@ ( a -- n )
+; read integer from mcu EEPROM 
+;  a -> {0..511}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PROMAT,5,"PROM@"
+        CALL EEROM_ADDR ; y=address 
+        LDW Y,(Y)
+        LDW (X),Y 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PROM! ( n a -- )
+; write integer to mcu EEPROM 
+; a -> {0..511}
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PROMSTO,5,"PROM!"
+        CALL EEROM_ADDR ; y= address 
+        PUSHW X 
+        LDW X,(CELLL,X)
+        CALL eeprom_write_2bytes  
+        POPW X 
+        _DDROP 
+        RET 
+
+EEPROM_BLK_ADDR: ; ( a -- )
+        LDW Y,X 
+        LDW Y,(Y)
+        ADDW Y,#EEPROM_BASE 
+        _TDROP 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PROM-BLK@ (cnt b a -- )
+; read cnt bytes from mcu EEPROM 
+;  a -> EEPROM address {0...1023}
+;  b -> buffer address 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PROM_BLK_AT,9,"PROM-BLK@"
+XSAVE=1
+CNT=XSAVE+2
+EE_ADR=CNT+2 
+        CALL EEPROM_BLK_ADDR
+        PUSHW Y  ; EE_ADR  
+        LDW Y,X
+        LDW Y,(CELLL,Y) 
+        PUSHW Y ; CNT 
+        LDW Y,X 
+        LDW Y,(Y) ;BUF_ADR
+        _DDROP 
+        PUSHW X  ; XSAVE
+1$:
+        LDW X,(EE_ADR,SP)
+        LD  A,(X) ; A=EEPROM[EE_ADR]
+        LD (Y),A  ; *b=A  
+        INCW X  ; EE_ADR++
+        INCW Y  ; b++
+        LDW (EE_ADR,SP),X 
+        ; decrement cnt 
+        LDW X,(CNT,SP)
+        DECW X 
+        LDW (CNT,SP),X 
+        JRNE 1$ 
+        POPW X 
+        _drop 4 ; drop CNT,EE_ADR 
+        RET 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;       PROM-BLK! (cnt b a -- )
+; write cnt bytes to mcu EEPROM 
+;  a -> EEPROM address {0...1023}
+;  b -> buffer address 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        _HEADER PROM_BLK_CSTO,9,"PROM-BLK!"
+XSAVE=1
+CNT=XSAVE+2
+EE_ADR=CNT+2 
+        CALL EEPROM_BLK_ADDR
+        PUSHW Y  ; EE_ADR 
+        LDW Y,X 
+        LDW Y,(CELLL,Y)
+        PUSHW Y ; CNT 
+        LDW Y,X 
+        LDW Y,(Y) ; BUF_ADR
+        _DDROP 
+        PUSHW X  ; XSAVE 
+        LDW X,Y ; X=BUF_ADR 
+1$:
+        LDW Y,(CNT,SP)
+        JREQ 5$
+        CPW Y,#4 
+        JRMI 3$ 
+        SUBW Y,#4 
+        LDW (CNT,SP),Y 
+        LDW Y,(EE_ADR,SP)
+        CALL eeprom_write_4bytes
+        LDW (EE_ADR,SP),Y 
+        JRA 1$
+2$:     
+        LDW Y,(CNT,SP)
+        JREQ 5$  
+3$:
+        DECW Y  
+        LDW (CNT,SP),Y 
+        LDW Y,(EE_ADR,SP)
+        CALL eeprom_write_byte
+        JRA 2$  
+5$:     POPW X 
+        _drop 4                 
         RET 
 
 

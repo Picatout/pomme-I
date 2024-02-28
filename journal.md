@@ -1,3 +1,23 @@
+### 2024-02-27
+
+* Ajout de routines dans [p1Kernel.asm](p1Kernel.asm) pour supporter l'écriture dans l'EEPROM.
+
+* Ajout de PROM() dans p1BASIC, tableau d'entiers addressable de {0..511}, sauvegardé dans la mémoire EEPROM de 1Ko du mcu.
+
+* Ajout dans p1Forth.  des mots suivants pour la sauvegarde de données persistantes dans l'EEPROM du mcu.
+    * __PROM@ ( a -- n )__, lecture d'un entier   __a__ -&gt; {0..511}.
+    * __PROM! ( n a -- )__, écriture d'un entier  __a__ -&gt; {0..511}.
+    * __PROM-BLK@ ( cnt b a -- )__, lecture d'un nombre d'octets dan un tampon.
+        * __cnt__ nombre d'octets à lire. 
+        * __b__ adresse du tampon.
+        * __a__ adress début de la plage dans l'EEPROM.
+    * __PROM-BLK! ( cnt b a -- )__, écriture de _cnt__ octets du tampon __b__ vers l'EEPROM à partir de l'adresse __a__. 
+
+* Retour en arrière pour renommer les mots suivants:
+    * **XRAM-BLK-C@** renommé **XRAM-BLK@** 
+    * **XRAM-BLK-C!** renommé **XRAM-BLK!** 
+
+
 ### 2024-02-25
 
 * Ajout d'un désassembleur [p1Monitor](p1Monitor.asm). Accessible avec la commande **@**.

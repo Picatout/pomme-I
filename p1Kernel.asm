@@ -333,5 +333,82 @@ set_seed::
     _clrz seedy+1
     ret 
 
- 
-     
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; EEPROM routines    ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;---------------------------
+; unlock eeprom programming 
+;---------------------------
+eeprom_unlock:
+    btjt FLASH_IAPSR,#FLASH_IAPSR_DUL,3$
+1$: mov FLASH_DUKR,#FLASH_DUKR_KEY1
+    mov FLASH_DUKR,#FLASH_DUKR_KEY2
+2$: btjf FLASH_IAPSR,#FLASH_IAPSR_DUL,.
+3$:
+    ret 
+
+;-------------------------------
+; lock eeprom programming 
+;-------------------------------
+eeprom_lock:
+    bres FLASH_IAPSR,#FLASH_IAPSR_DUL 
+    ret  
+
+;-------------------------------
+; write 1 byte to eeprom 
+; eeprom must be unlocked 
+; input:
+;     a  value 
+;     Y  address 
+;--------------------------------
+eeprom_write_byte::
+    btjf FLASH_IAPSR,#FLASH_IAPSR_DUL,9$
+    ld (y),a 
+    btjf FLASH_IAPSR,#FLASH_IAPSR_EOP,.
+9$:
+    ret 
+
+;----------------------------
+; write uint8_t to EEPROM 
+; eeprom must be unlocked 
+; input:
+;   x     value 
+;   y     address 
+;----------------------------
+eeprom_write_2bytes::
+    btjf FLASH_IAPSR,#FLASH_IAPSR_DUL,9$
+    ld a,xh 
+    ld (y),a
+    btjf FLASH_IAPSR,#FLASH_IAPSR_EOP,.
+    ld a,xl 
+    ld (1,y),a 
+    btjf FLASH_IAPSR,#FLASH_IAPSR_EOP,.
+9$:
+    ret 
+
+;---------------------------------
+; write uint32_t to EEPROM 
+; eeprom must be unlocked 
+; input:
+;    X   *uint32_t  
+;    y   eeprom address  
+;---------------------------------
+eeprom_write_4bytes::
+    btjf FLASH_IAPSR,#FLASH_IAPSR_DUL,9$
+    mov FLASH_CR2,#0X40 
+    mov FLASH_CR2,#0XBF 
+    push #4 
+4$:    
+    ld a,(x)
+    ld (y),a 
+    incw x 
+    incw y 
+    dec (1,sp)
+    jrne 4$
+    _drop 1  
+    btjf FLASH_IAPSR,#FLASH_IAPSR_EOP,.
+9$:
+    ret 
+
+

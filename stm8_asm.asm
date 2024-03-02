@@ -16,10 +16,11 @@
 ;     along with pomme-1.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 
+
 ;--------------------------------
 ;  simple embeded assembler 
 ;  for STM8 core
-;  tokens separated by SPACE  
+;  tokens separated by SPACE and ,  
 ;--------------------------------
     ASM_ADR=1
     TOK_ADR=ASM_ADR+2 
@@ -30,14 +31,13 @@ stm8asm:
     _vars VSIZE 
     clr a 
     call readln 
-    ld a,#SPACE 
-    call next_token  
-    call search_token 
+    call mnemonic   
+    call search_mnemonic  
     jrne 8$ 
     call (y) ; address of token executable 
 8$: ; not a valid token 
     ldw x,#BAD_TOKEN
-    call uart_puts 
+    call puts 
 9$:    
     _drop VSIZE 
     ret 
@@ -82,18 +82,54 @@ scan:
     ret 
 
 ;----------------------------
-; extract next token 
+; extract mnemonic 
 ; input:
 ;     X   *text line 
 ; output:
 ;     A    token length 
 ;     X    *token
 ;----------------------------
-next_token:
+mnemonic:
     ld a,#SPACE 
     call skip 
     call scan 
     ret 
+
+;------------------------
+; search mnemonic in 
+; scanning mnemo_index 
+; array and comparing string 
+; input:
+;    A    token length 
+;    X    *token 
+; output:
+;    
+;-----------------------------
+PTOK=1
+PIDX=PTOK+2
+CNTR=PIDX+1
+TLEN=CNTR+1
+VSIZE=TLEN 
+search_mnemonic:
+    _vars VSIZE 
+    ldw (PTOK,SP),x 
+    ld (TLEN,SP),A
+    clr (CNTR,SP) 
+    ldw x,#mnemo_index+2
+    ldw (PIDX,SP),X 
+1$: ld a,(TLEN,SP)
+    ldw x,(PTOK,SP)
+    ldw y,(PIDX,sp)
+    ldw y,(y)
+    call cstrcp 
+    jreq 8$
+
+8$: ; found 
+    ld a,(CNTR,SP)
+    
+    _drop VSIZE 
+    ret 
+
 
 ;--------------------------
 ; compare counted strings 
@@ -127,7 +163,7 @@ cstrcp:
 ;  token dictionary 
 ;  same structure as p1Forth
 ;----------------------------
-    
+        
 
 
 

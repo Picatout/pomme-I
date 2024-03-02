@@ -546,6 +546,5 @@ print_help::
 9$: _drop 1     
     ret 
 
-;    .include "stm8asm.asm"
     .include "kernel.hlp" 
 

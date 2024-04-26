@@ -1,6 +1,16 @@
 # p1Monitor 
 
-Le moniteur du **POMME-I** est inspiré du **Wozmon**, c'est à dire le moniteur du Apple I créé par Steeve Wozniak en 1974. Ses fonctionnalités et son fonctionnement de base sont identique au **Wozmon** mais il comporte des ajouts. 
+## Qu'est-ce qu'un moniteur 
+
+Le mot **moniteur** peut prendre plusieurs sens. Dans le contexte actuel il s'agit d'un petit programme intégré dans une mémoire persistante et qui s'exébute au démarrage. Dans les années 70s au tout début de l'informatique personnelle. Les mémoires RAM et ROM coûtaient cher et les petits ordinateurs de base en possédaient très peu. Par exemple l'Apple I ne possédait qu'une ROM de 256 octets. Quel programme peut-on installé dans si peu d'espace? Le programme inclus habituellement dans ces petites ROMs ne permettait que de faire les opérations de base suivantes:
+
+1.  Examiner le contenu de la mémoire. 
+1.  Modifier le contenu de la mémoire RAM.
+1.  lancer un programme machine.
+
+Ce petit programme s'appellait un moniteur. **monitor** en anglais.
+
+Le moniteur du **POMME-I** est inspiré du **Wozmon**, c'est à dire le moniteur du Apple I créé par Steve Wozniak en 1974. Ses fonctionnalités et son fonctionnement de base sont identique au **Wozmon** mais il comporte des ajouts. 
 
 ## Au démarrage 
 
@@ -16,7 +26,7 @@ pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
 
 ## Fonctions de bases 
 
-D'abord il faut savoir que toutes les entrées et sorties numériques sont en hexadécimal. Il n'y a cependant aucun préfixe comme on le voit dans certains langages comme **h**, **0x** ou **$** pour indiquer qu'il s'agit d'entiers hexadécimaux. 
+D'abord il faut savoir que toutes les entrées et sorties numériques sont en hexadécimal. Il n'y a cependant aucun préfixe comme on le voit dans certains langages comme **h**, **0x** ou **$** pour indiquer qu'il s'agit d'entiers hexadécimaux. C'est inutile puisqu'il n'y a que la base hexadécimal d'utilisée.
 
 Pour connaître la valeur de l'octet à une adresse donnée il suffit d'entrer l'adresse suivit de la touche **ENTER**. 
 ```
@@ -60,7 +70,7 @@ Pour modifier le contenu de la mémoire RAM, il faut indiquer l'adresse de débu
 #
 ```
 
-Si un programme a été chargé en mémoire RAM et qu'on veut l'exécuter il faut saisir l'adresse d'entrée du programme suivit de la lettre **R**. On peut relancer le programme une autre fois simplement en tapant la lettre **R** suivit de **ENTER** car l'adresse est conservée. Cependant si cette adresse est modifiée par une autre commande elle devra être saisie à nouveau. Les programmes exécutés par cette commande doivent se terminer par une instruction machine **RET**, de code hexadécimal **81** de sorte qu'à la sortie on revient dans le moniteur.
+Si un programme a été chargé en mémoire RAM et qu'on veut l'exécuter il faut saisir l'adresse d'exécution du programme suivit de la lettre **R**. On peut relancer le programme une autre fois simplement en tapant la lettre **R** suivit de **ENTER** car l'adresse est conservée. Cependant si cette adresse est modifiée par une autre commande elle devra être saisie à nouveau. Les programmes exécutés par cette commande doivent se terminer par une instruction machine **RET**, de code hexadécimal **81** de sorte qu'à la sortie on revient dans le moniteur.
 ```
 0100: A6 09 AE 3C 80 83 81 00
 #100R
@@ -78,6 +88,268 @@ pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
 ```
 
 ## Fonctions supplémentaires.
+
+### Chaîne de caractères ASCII
+une adresse suivit du caractère **"** permet d'assembler une chaîne ASCII. La chaîne est terminée par un **0**.
+```
+#200"BONJOUR CHEZ-VOUS!
+
+0200: A6
+#200.220
+
+0200: 42 4F 4E 4A 4F 55 52 20
+0208: 43 48 45 5A 2D 56 4F 55
+0210: 53 21 00 21 0A 00 00 00
+0218: 00 00 00 00 00 00 00 00
+0220: 00
+
+```
+### désassembleur 
+Une adresse suivit du caractère **@** liste un désassemblage du code à partir de l'adresse. La touche **ESPACE** permet de continuer le désassemblage et toute autre touche retourne au moniteur.
+```
+#6000@
+
+6000: 9B
+6000	9B               SIM
+6001	AD 0C            CALLR 600F 
+6003	25 19            JRC 601E 
+6005	CE 48 7E         LDW X,487E 
+6008	A3 55 AA         CPW X,#55AA 
+600B	27 11            JREQ 601E 
+600D	20 16            JRA 6025 
+600F	C6 80 00         LD A,8000 
+6012	A1 82            CP A,#82 
+6014	27 06            JREQ 601C 
+6016	A1 AC            CP A,#AC 
+6018	27 02            JREQ 601C 
+601A	99               SCF
+601B	81               RET
+601C	98               RCF
+601D	81               RET
+601E	C6 48 00         LD A,4800 
+6021	A1 AA            CP A,#AA 
+6023	26 09            JRNE 602E 
+6025	5F               CLRW X
+6026	4F               CLR A
+6027	4B 28            PUSH #28 
+6029	86               POP CC
+602A	AC 00 80 00      JPF 8000 
+#
+
+``` 
+
+### Appels système 
+La commande **?**  affiche une carte de référence rapide des appels systèmes disponible.
+```
+                 KERNEL SERVICES
+  CODE | FUNCTION | INPUT | OUTPUT      | DESCRIPTION   
+--------------------------------------------------------------
+   0   | RESET    | NONE  | NONE        | reset computer
+   1   | TICK     | NONE  | X=MSEC      | return msec counter
+   2   | PUTCHAR  | X=CHR | NONE        | print char
+   3   | GETCHAR  | NONE  | A=CHAR      | get char from term
+   4   | CHAR?    | NONE  | A=0,-1      | char received?
+   5   | CLS      | NONE  | NONE        | clear term screen
+   6   | DELBACK  | NONE  | NONE        | delete last char
+   7   | GETLINE  | X=line| A=ln len    | read line 
+       |          | length| X=buffer    | from terminal
+   8   | PUTS     | X=STR | NONE        | print string
+   9   | PRT_INT  | X=INT |             |
+       |          | A=SGN | A=LEN       | print integer
+   A   | SET_TMR  | X=INT | NONE        | set countdown timer
+   B   | TIMEOUT? | NONE  | A=0,-1      | check time out
+   C   | TONE     | X=MSEC|             |
+       |          | Y=FREQ| NONE        | generate tone
+   D   | FILE OP  | X=FCB | X=FCB       | file operation
+   E   | RAND     | NONE  | X=UINT      | get random #
+   F   | SEED     | X=0,n | NONE        | seed prng
+
+
+```
+Une adresse suivit du caractère **S** permet d'assembler un appel système.
+```
+#100S 1 
+
+0100: 00
+0103
+
+#103S 9 ]
+
+0103: 00
+0106
+0107
+#100.107
+
+0100: A6 01 83 A6 09 83 81 00
+
+#100R
+
+0100: A6
+8269 
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#R
+
+12295 
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+```
+Dans cet exemple on assemble 2 appels système
+
+* le code d'appel **1** charge le registre **X** avec le compteur de millisecondes du système. 
+* le code d'appel **9** impprime la valeur du registre **X**. 
+
+Lorsqu'on assemble un appel système la prochaine adresse libre est indiquée, ici **103**. On assemble donc le 2ième appel à cette adresse. 
+
+* le caractère **]** assemble l'instruction **RET** qui met fin au programme. 
+
+Voici le désassemblage du programme qu'on vient de créer.
+```
+#100@
+
+0100: A6
+0100	A6 01            LD A,#01 
+0102	83               TRAP
+0103	A6 09            LD A,#09 
+0105	83               TRAP
+0106	81               RET
+```
+L'instruction machine **TRAP** est utilisée pour faire un appel système.
+
+### Simplification des appels système pour les opérations sur fichiers.
+Le code système **D** permet d'effectuer une opération sur fichier met le codage de ces opérations requiert la préparation d'une structure de donnée définie comme variable système. Pour simplifier ces opérations une syntaxe particulière est utilisée pour ces commandes.
+
+Il y a 4 opérations sur les fichiers:
+
+* **L**oad pour charger un fichier en mémoire.
+* **S**ave pour savegarder une plage mémoire dans un fichier.
+* **D**ir pour lister les fichiers.
+* **E**rase pour effacer un fichier.
+
+Pour afficher la liste des fichiers on cré le programme suivant et on l'exécute.
+```
+#100S D D ]
+
+#100R
+
+0100: A6
+speed.bas        65 bytes
+hello.bas        33 bytes
+SPEED.4TH        122 bytes
+
+3 files
+3 sectors used
+
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#
+```
+
+On va créer le programme "HELLO.BIN" à l'adresse 200. La chaîne à imprimer sera à l'adresse 208. 
+```
+#200S 8 208 ]
+
+0200: A6
+0206
+0207
+#
+```
+Ici on a utilisé le code système **8** qui sert à imprimer la chaîne pointée par le registre **X**. Désassemblons pour voir.
+```
+#200@
+
+0200: A6
+0200	A6 08            LD A,#08 
+0202	AE 02 08         LDW X,#0208 
+0205	83               TRAP
+0206	81               RET
+```
+On va maintenant créer la chaîne à l'adresse **208**. Une adresse suivit du caractère **"** permet d'assembler une chaîne de caractère. On ajoute le caractères ASCII **A** à la fin de la chaîne pour passer à la ligne suivante après l'impression.
+```
+208"HELLO WORLD!
+214: A  
+```
+Testons notre programme.
+```
+#200R
+
+0200: A6
+HELLO WORLD!
+
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#
+```
+Maintenant on va créer un autre programme à l'adresse 100 pour sauvegarder celui-ci dans un fichier.
+```
+#100S D S HELLO.BIN 200 20 
+
+0100: A6
+0106
+```
+On exécute le programme de sauvegarde.
+```
+#100R
+
+0100: A6
+operation completed
+
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#
+```
+Maintenant on cré le programme pour afficher la liste des fichiers et on l'exécute.
+```
+#100S D D ]
+
+0100: A6
+0106
+0107
+#100R
+
+0100: A6
+speed.bas        65 bytes
+hello.bas        33 bytes
+SPEED.4TH        122 bytes
+TICKS.BIN        8 bytes
+HELLO.BIN        32 bytes
+
+5 files
+5 sectors used
+
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#
+```
+Notre programme **HELLO.BIN" a bien été sauvegardé on va créer et exécuter un autre programme pour charger le fichier "HELLO.BIN" à l'adresse 300.
+```
+#100S D L HELLO.BIN 300 ]
+
+0100: A6
+0106
+0107
+#100R
+
+0100: A6
+operation completed
+
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#
+```
+On va exécuter le programme **HELLO.BIN** qu'on vient de charger.
+```
+#300R
+
+0300: A6
+HELLO WORLD!
+
+pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+
+#
+```
+
+## Touches rapides 
 
 **CTRL+X** redémarre l'ordinateur. 
 

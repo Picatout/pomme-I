@@ -1,3 +1,7 @@
+### 2024-03-02
+
+* Travail sur [stm8_asm.asm](stm8_asm.asm).
+
 ### 2024-02-27
 
 * Ajout de routines dans [p1Kernel.asm](p1Kernel.asm) pour supporter l'écriture dans l'EEPROM.

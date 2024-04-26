@@ -56,6 +56,7 @@ ACC16=ACC24+1
 ACC8=ACC16+1
 
 dasm_flags=ACC8+1  ; boolean flags
+
 ;------------------------------------------
 ;    boolean flags in variable 'dasm_flags'
 ;------------------------------------------

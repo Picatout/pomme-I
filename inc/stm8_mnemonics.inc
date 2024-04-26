@@ -239,6 +239,7 @@ mnemo_index:
     .word M.WFI  ; 104
     .word M.XOR  ; 105
     .word M.QM   ; 106 
+    .word 0 
 
 ;-----------------------------------------------
 ; Instructions names used by assembler.

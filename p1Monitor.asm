@@ -26,7 +26,7 @@
 ;--------------------------------
 
 MON_MAJOR=1 
-MON_MINOR=3 
+MON_MINOR=4 
 MON_REV=0
 
 
@@ -69,9 +69,13 @@ GO_BASIC:
     call new_line
     jp P1BASIC 
 GO_FORTH:
-    jp forth_init 
+    jp forth_init
+GO_DIR:
+    call list_files
+    jra GETLINE 
 FORMAT:
     call erase_all
+    jra GETLINE
 WOZMON:: 
     ldw x,#mon_str
     ldw y,#mon_copyright 
@@ -101,6 +105,8 @@ NEXTCHAR:
     jreq GETLINE ; rejected characters cancel input, start over  
     cp a,#CTRL_B 
     jreq GO_BASIC 
+    cp a,#CTRL_D 
+    jreq GO_DIR 
     cp a,#CTRL_E 
     jreq FORMAT 
     cp a,#CTRL_F
@@ -138,14 +144,24 @@ NEXTITEM:
     jreq GETLINE ; end of input line  
     cp a,#QUOTE 
     jreq STOR_QUOTE 
-    cp a,#XAM_BLOK
+    cp a,#XAM_BLOK ; . 
     jrmi BLSKIP 
     jreq SETMODE 
-    cp a,#STOR 
+    cp a,#STOR ; : 
     jreq SETMODE
+    cp a,#'L 
+    jrne 0$
+    call load_binary
+    jra GETLINE  
+0$:
     cp a,#'R 
     jreq RUN
     cp a,#'S 
+    jrne 4$
+    call save_binary 
+    jp GETLINE 
+4$:
+    cp a,#'K  
     jrne 1$
     call asm_syscall ; assemble syscall 
     jra NEXTITEM 
@@ -247,6 +263,40 @@ PRINT_ADDR:
     ld a,xl 
     jp print_hex 
 
+;-----------------------
+; save binary file
+; format: adrS name size 
+; example: 200S HELLO.BIN 20 
+;-----------------------------
+save_binary:
+    ld a,#FILE_SAVE 
+    _straz fcb+FCB_OPERATION 
+    ldw x,XAMADR 
+    _strxz fcb+FCB_BUFFER 
+    incw y 
+    call parse_file_name 
+    call skip_spaces 
+    call get_hex 
+    _strxz fcb+FCB_DATA_SIZE
+    ldw x,#fcb 
+    call save_file
+    ret 
+
+;---------------------------
+; load binary file 
+; format: adrL name 
+; example: 200L HELLO.BIN 
+;---------------------------
+load_binary:
+    ld a,#FILE_LOAD 
+    _straz fcb+FCB_OPERATION 
+    incw y
+    call parse_file_name 
+    _ldxz XAMADR
+    _strxz fcb+FCB_BUFFER
+    ldw x,#fcb 
+    call load_file  
+    ret 
 
 ;---------------------------------
 ; parse line and assemble 
@@ -395,12 +445,12 @@ parse_file_name:
     ld (x),a   
     incw x 
     jra 1$ 
-2$:  
-    cpw x,#fcb+FCB_BUFFER 
+2$: ld a,#SPACE  
+3$: cpw x,#fcb+FCB_BUFFER 
     jrpl 4$ 
     ld (x),a 
     incw x 
-    jra 2$ 
+    jra 3$ 
 4$: 
     ret 
 
@@ -491,12 +541,15 @@ NEXTHEX:
     ld a,(tib,y)
     cp a,#CR 
     jreq NOTHEX 
-    xor a,#0x30 
-    cp a,#10 
-    jrmi DIG 
-    cp a,#0x71 
+    sub a,#0x30 
     jrmi NOTHEX 
-    sub a,#0x67
+    cp a,#10
+    jrmi DIG 
+    sub a,#7
+    cp a,#10   
+    jrmi NOTHEX
+    cp a,#16 
+    jrpl NOTHEX  
 DIG: 
     push #4
     swap a 

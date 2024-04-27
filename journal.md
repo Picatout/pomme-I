@@ -1,3 +1,25 @@
+### 2024-04-27
+
+* p1Monitor version 1.4R0
+
+* Modification au p1Monitor pour ajouter le hot key **CTRL+D** pour afficher la liste des fichiers.
+
+* Ajout de la commande **L** pour charger un fichier binaire.
+    * syntaxe:  addrL nom_fichier
+    * exemple:  200L HELLO.BIN  
+
+* Corrigé routine *get_hex* dans [p1Monitor.asm](p1Monitor.asm).
+
+* Remplacé commande **S** par **K**  comme dans **K**ernel.
+
+* Ajout de la commande **S** pour sauvegarder un fichier binaire.
+    * syntaxe:  addrS nom_fichier taille
+    * exemple:  200L HELLO.BIN 20
+
+### 2024-04-26 
+
+Travail sur [manuel_p1Monitor.md](docs/manuel_du_p1Monitor.md).
+
 ### 2024-03-02
 
 * Travail sur [stm8_asm.asm](stm8_asm.asm).

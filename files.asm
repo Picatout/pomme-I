@@ -349,7 +349,7 @@ load_file::
 	BUF_ADR=FCB_REC+2 
 	YSAVE=BUF_ADR+2
 	VSIZE=YSAVE+1
-save_file:
+save_file::
 	_vars VSIZE 
 	ldw (YSAVE,sp),y
 	ldw (FCB_REC,sp),x  

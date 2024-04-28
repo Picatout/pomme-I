@@ -42,8 +42,18 @@ MON_REV=0
 ;       hex_number  -> display byte at that address 
 ;       hex_number.hex_number -> display bytes in that range 
 ;       hex_number: hex_byte [hex_byte]*  -> modify content of RAM or peripheral registers 
-;       hex_numberR  -> run machine code a hex_number  address  
-;       CTRL_B -> launch pomme BASIC
+;       hex_numberR  -> run machine code at  address  
+;       hex_number@  -> disassemble binary code.
+;       hex_numberK  params -> assemble system call 
+;       hex_number]  -> assemble  RET
+;       hex_numberS  name size -> memory range in file 
+;       hex_numberL  name -> load file in RAM   
+;       CTRL+B -> launch p1BASIC
+;       CTRL+D -> display files list
+;       CTRL+E -> erase all files 
+;       CTRL+F -> launch p1Forth
+;       CTRL+X -> reboot 
+;       ?   display system call quick card     
 ;----------------------------------------------------
 ; monitor variables 
 YSAV = APP_DATA_ORG 
@@ -269,6 +279,8 @@ PRINT_ADDR:
 ; example: 200S HELLO.BIN 20 
 ;-----------------------------
 save_binary:
+    ld a,#CR 
+    call uart_putc 
     ld a,#FILE_SAVE 
     _straz fcb+FCB_OPERATION 
     ldw x,XAMADR 
@@ -288,6 +300,8 @@ save_binary:
 ; example: 200L HELLO.BIN 
 ;---------------------------
 load_binary:
+    ld a,#CR 
+    call uart_putc 
     ld a,#FILE_LOAD 
     _straz fcb+FCB_OPERATION 
     incw y
@@ -295,7 +309,7 @@ load_binary:
     _ldxz XAMADR
     _strxz fcb+FCB_BUFFER
     ldw x,#fcb 
-    call load_file  
+    call load_file 
     ret 
 
 ;---------------------------------

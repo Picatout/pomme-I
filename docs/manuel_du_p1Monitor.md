@@ -2,7 +2,7 @@
 
 ## Qu'est-ce qu'un moniteur 
 
-Le mot **moniteur** peut prendre plusieurs sens. Dans le contexte actuel il s'agit d'un petit programme intégré dans une mémoire persistante et qui s'exébute au démarrage. Dans les années 70s au tout début de l'informatique personnelle. Les mémoires RAM et ROM coûtaient cher et les petits ordinateurs de base en possédaient très peu. Par exemple l'Apple I ne possédait qu'une ROM de 256 octets. Quel programme peut-on installé dans si peu d'espace? Le programme inclus habituellement dans ces petites ROMs ne permettait que de faire les opérations de base suivantes:
+Le mot **moniteur** peut prendre plusieurs sens. Dans le contexte actuel il s'agit d'un petit programme intégré dans une mémoire persistante et qui s'exécute au démarrage. Dans les années 70s au tout début de l'informatique personnelle. Les mémoires RAM et ROM coûtaient cher et les petits ordinateurs de base en possédaient très peu. Par exemple l'Apple I ne possédait qu'une ROM de 256 octets. Quel programme peut-on installer dans si peu d'espace? Le programme inclus habituellement dans ces petites ROMs ne permettait que de faire les opérations de base suivantes:
 
 1.  Examiner le contenu de la mémoire. 
 1.  Modifier le contenu de la mémoire RAM.
@@ -16,17 +16,17 @@ Le moniteur du **POMME-I** est inspiré du **Wozmon**, c'est à dire le moniteur
 
 Le moniteur est l'application qui est lancée automatiquement au démarrage du **POMME-I**. La version du moniteur est indiquée à la suite de la version du **firmware du noyau**. Ensuite s'affiche le symbole **#** pour indiquer que le moniteur est prêt à recevoir une commande.
 ```
-pomme I version 1.3R0 Copyright Jacques Deschenes, (c) 2023,24
+pomme I version 1.4R0 Copyright Jacques Deschenes, (c) 2023,24
 Fcpu= 16Mhz
 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
 #
 ```
 
 ## Fonctions de bases 
 
-D'abord il faut savoir que toutes les entrées et sorties numériques sont en hexadécimal. Il n'y a cependant aucun préfixe comme on le voit dans certains langages comme **h**, **0x** ou **$** pour indiquer qu'il s'agit d'entiers hexadécimaux. C'est inutile puisqu'il n'y a que la base hexadécimal d'utilisée.
+D'abord il faut savoir que toutes les entrées et sorties numériques sont en hexadécimal. Il n'y a cependant aucun préfixe comme **h**, **0x** ou **$** pour indiquer qu'il s'agit d'entiers hexadécimaux. C'est inutile puisqu'il n'y a que la base hexadécimale d'utilisée.
 
 Pour connaître la valeur de l'octet à une adresse donnée il suffit d'entrer l'adresse suivit de la touche **ENTER**. 
 ```
@@ -77,12 +77,12 @@ Si un programme a été chargé en mémoire RAM et qu'on veut l'exécuter il fau
 
 0100: A6
 15488 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
 #R
 
 15488 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
 #
 ```
@@ -102,7 +102,6 @@ une adresse suivit du caractère **"** permet d'assembler une chaîne ASCII. La 
 0210: 53 21 00 21 0A 00 00 00
 0218: 00 00 00 00 00 00 00 00
 0220: 00
-
 ```
 ### désassembleur 
 Une adresse suivit du caractère **@** liste un désassemblage du code à partir de l'adresse. La touche **ESPACE** permet de continuer le désassemblage et toute autre touche retourne au moniteur.
@@ -166,14 +165,14 @@ La commande **?**  affiche une carte de référence rapide des appels systèmes 
 
 
 ```
-Une adresse suivit du caractère **S** permet d'assembler un appel système.
+Une adresse suivit du caractère **K** permet d'assembler un appel système. **K** pour **kernel**.
 ```
-#100S 1 
+#100K 1 
 
 0100: 00
 0103
 
-#103S 9 ]
+#103K 9 ]
 
 0103: 00
 0106
@@ -186,12 +185,12 @@ Une adresse suivit du caractère **S** permet d'assembler un appel système.
 
 0100: A6
 8269 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
 #R
 
 12295 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
 ```
 Dans cet exemple on assemble 2 appels système
@@ -216,142 +215,86 @@ Voici le désassemblage du programme qu'on vient de créer.
 ```
 L'instruction machine **TRAP** est utilisée pour faire un appel système.
 
-### Simplification des appels système pour les opérations sur fichiers.
-Le code système **D** permet d'effectuer une opération sur fichier met le codage de ces opérations requiert la préparation d'une structure de donnée définie comme variable système. Pour simplifier ces opérations une syntaxe particulière est utilisée pour ces commandes.
+### Sauvegarde et chargement d'un fichier binaire.
+Depuis la version **1.4** le p1Monitor permet de sauvegarder et charger un fichier binaire.
 
-Il y a 4 opérations sur les fichiers:
+* **adrS nom taille** permet de sauvegarder une plage mémoire dans un fichier. 
+* **adrL nom** permet de charger un fichier binaire en mémoire RAM.
 
-* **L**oad pour charger un fichier en mémoire.
-* **S**ave pour savegarder une plage mémoire dans un fichier.
-* **D**ir pour lister les fichiers.
-* **E**rase pour effacer un fichier.
+* **CTRL+D** Affiche le aliste des fichiers disponibles.
 
-Pour afficher la liste des fichiers on cré le programme suivant et on l'exécute.
+Par exemple pour sauvegarder le programme qu'on vient de créer à l'adresse 100 on fait. 
 ```
-#100S D D ]
+#100S TICKS.BIN 8
 
-#100R
-
-0100: A6
-speed.bas        65 bytes
-hello.bas        33 bytes
-SPEED.4TH        122 bytes
+0100: A6operation completed
+```
+On fait **CTRL+D** pour s'assurer que le nouveau fichier est bien là.
+On va maintenant recharger ce programme mais à l'adresse 200 et l'exécuter. 
+```
+#BONJOUR.BIN      32 bytes
+BONJR.BIN        32 bytes
+TICKS.BIN        8 bytes
 
 3 files
 3 sectors used
 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+#200L TICKS.BIN
 
-#
-```
+0200: 00operation completed
 
-On va créer le programme "HELLO.BIN" à l'adresse 200. La chaîne à imprimer sera à l'adresse 208. 
-```
-#200S 8 208 ]
-
-0200: A6
-0206
-0207
-#
-```
-Ici on a utilisé le code système **8** qui sert à imprimer la chaîne pointée par le registre **X**. Désassemblons pour voir.
-```
-#200@
-
-0200: A6
-0200	A6 08            LD A,#08 
-0202	AE 02 08         LDW X,#0208 
-0205	83               TRAP
-0206	81               RET
-```
-On va maintenant créer la chaîne à l'adresse **208**. Une adresse suivit du caractère **"** permet d'assembler une chaîne de caractère. On ajoute le caractères ASCII **A** à la fin de la chaîne pour passer à la ligne suivante après l'impression.
-```
-208"HELLO WORLD!
-214: A  
-```
-Testons notre programme.
-```
 #200R
 
 0200: A6
-HELLO WORLD!
+5580 
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+#R
 
-#
-```
-Maintenant on va créer un autre programme à l'adresse 100 pour sauvegarder celui-ci dans un fichier.
-```
-#100S D S HELLO.BIN 200 20 
-
-0100: A6
-0106
-```
-On exécute le programme de sauvegarde.
-```
-#100R
-
-0100: A6
-operation completed
-
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
-
-#
-```
-Maintenant on cré le programme pour afficher la liste des fichiers et on l'exécute.
-```
-#100S D D ]
-
-0100: A6
-0106
-0107
-#100R
-
-0100: A6
-speed.bas        65 bytes
-hello.bas        33 bytes
-SPEED.4TH        122 bytes
-TICKS.BIN        8 bytes
-HELLO.BIN        32 bytes
-
-5 files
-5 sectors used
-
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
-
-#
-```
-Notre programme **HELLO.BIN" a bien été sauvegardé on va créer et exécuter un autre programme pour charger le fichier "HELLO.BIN" à l'adresse 300.
-```
-#100S D L HELLO.BIN 300 ]
-
-0100: A6
-0106
-0107
-#100R
-
-0100: A6
-operation completed
-
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
-
-#
-```
-On va exécuter le programme **HELLO.BIN** qu'on vient de charger.
-```
-#300R
-
-0300: A6
-HELLO WORLD!
-
-pomme I monitor version 1.3R0  Jacques Deschenes (c) 2023,24
+7851 
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
 
 #
 ```
 
 ## Touches rapides 
 
+**CTRL+D** Affiche la liste des fichiers.
+```
+#BONJOUR.BIN      32 bytes
+BONJR.BIN        32 bytes
+TICKS.BIN        8 bytes
+
+3 files
+3 sectors used
+#
+```
+**CTRL+E**  Pour effacer tous les fichiers.
+```
+#BONJOUR.BIN      32 bytes
+BONJR.BIN        32 bytes
+TICKS.BIN        8 bytes
+
+3 files
+3 sectors used
+
+#
+Do you really want to erase all files? (N/Y)
+#
+0 files
+0 sectors used
+#
+```
+
 **CTRL+X** redémarre l'ordinateur. 
+```
+pomme I version 1.4R0 Copyright Jacques Deschenes, (c) 2023,24
+Fcpu= 16Mhz
+
+pomme I monitor version 1.4R0  Jacques Deschenes (c) 2023,24
+
+#
+```
 
 **CTRL+B** lance **p1BASIC**.
 ```
@@ -369,3 +312,4 @@ p1Forth version 5.1R3  Jacques Deschenes (c) 2023,24
 ```
 
 **p1BASIC** et **p1Forth** peuvent-être quittés avec **CTRL+X** ou bien la commande **BYE** ce qui a pour effet de redémarrer l'ordinateur.
+

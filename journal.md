@@ -1,3 +1,7 @@
+### 2024-04-28
+
+* Travail sur [manuel_p1Monitor.md](docs/manuel_du_p1Monitor.md).
+
 ### 2024-04-27
 
 * p1Monitor version 1.4R0
@@ -18,7 +22,7 @@
 
 ### 2024-04-26 
 
-Travail sur [manuel_p1Monitor.md](docs/manuel_du_p1Monitor.md).
+* Travail sur [manuel_p1Monitor.md](docs/manuel_du_p1Monitor.md).
 
 ### 2024-03-02
 

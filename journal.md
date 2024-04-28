@@ -2,6 +2,10 @@
 
 * Travail sur [manuel_p1Monitor.md](docs/manuel_du_p1Monitor.md).
 
+* Ajout de la commande **Z** au moniteur pour mettre une plage mémoire à **0**.
+
+* Suppression de l'assistance d'assemblage des opérations sur fichiers.
+
 ### 2024-04-27
 
 * p1Monitor version 1.4R0

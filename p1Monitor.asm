@@ -153,7 +153,9 @@ NEXTITEM:
     cp a,#CR ; 
     jreq GETLINE ; end of input line  
     cp a,#QUOTE 
-    jreq STOR_QUOTE 
+    jrne 6$
+    jp STOR_QUOTE 
+6$:
     cp a,#XAM_BLOK ; . 
     jrmi BLSKIP 
     jreq SETMODE 
@@ -178,13 +180,7 @@ NEXTITEM:
 1$:
     cp a,#']
     jrne 2$ 
-    _ldxz STORADR
-    ld a,#0x81 ; RET machine code 
-    ld (x),a 
-    incw x 
-    _strxz STORADR
-    call PRINT_ADDR
-    incw y 
+    call asm_return 
     jra NEXTITEM
 2$:
     cp a,#'@ 
@@ -192,6 +188,11 @@ NEXTITEM:
     call stm8_dasm 
     jp GETLINE  
 3$:
+    cp a,#'Z 
+    jrne 5$
+    call clear_memory 
+    jp GETLINE 
+5$:
     _stryz YSAV ; save for comparison
     call get_hex
     cpw y,YSAV 
@@ -216,7 +217,7 @@ NOTREAD:
     incw x 
     _strxz STORADR 
 TONEXTITEM:
-    jra NEXTITEM 
+    jp NEXTITEM 
 RUN:
     ld a,#CR 
     call uart_putc
@@ -272,6 +273,37 @@ PRINT_ADDR:
     call print_hex 
     ld a,xl 
     jp print_hex 
+
+;-----------------------
+; clear memory 
+; format: xxxxZ size 
+;-----------------------
+clear_memory:
+    incw y 
+    call get_hex 
+    tnzw x 
+    jreq 9$
+    _ldyz XAMADR 
+1$:
+    clr (y)
+    incw y 
+    decw x
+    jrne 1$
+9$: ret 
+
+;-------------------------
+; assemble RET instruction
+; format xxxx]
+;-------------------------
+asm_return:
+    _ldxz STORADR
+    ld a,#0x81 ; RET machine code 
+    ld (x),a 
+    incw x 
+    _strxz STORADR
+    call PRINT_ADDR
+    incw y 
+    ret 
 
 ;-----------------------
 ; save binary file

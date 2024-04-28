@@ -1,4 +1,4 @@
-# p1Monitor 
+# p1Monitor version 1.4R0
 
 ## Qu'est-ce qu'un moniteur 
 
@@ -103,6 +103,24 @@ une adresse suivit du caractère **"** permet d'assembler une chaîne ASCII. La 
 0218: 00 00 00 00 00 00 00 00
 0220: 00
 ```
+### mise à zéro d'une plage de mémoire.
+La commande **Z** permet de mettre à zéro un plage mémoire en indiquant le compte d'octets en paramètre.
+```
+#100: 1 2 3 4 5 6 7 8  
+
+0100: 00
+#100.107
+
+0100: 01 02 03 04 05 06 07 08
+#100Z 8
+
+0100: 01
+#100.107
+
+0100: 00 00 00 00 00 00 00 00
+#
+```
+
 ### désassembleur 
 Une adresse suivit du caractère **@** liste un désassemblage du code à partir de l'adresse. La touche **ESPACE** permet de continuer le désassemblage et toute autre touche retourne au moniteur.
 ```
@@ -218,8 +236,8 @@ L'instruction machine **TRAP** est utilisée pour faire un appel système.
 ### Sauvegarde et chargement d'un fichier binaire.
 Depuis la version **1.4** le p1Monitor permet de sauvegarder et charger un fichier binaire.
 
-* **adrS nom taille** permet de sauvegarder une plage mémoire dans un fichier. 
-* **adrL nom** permet de charger un fichier binaire en mémoire RAM.
+* **xxxxS nom nnnn** permet de sauvegarder une plage mémoire de **nnnn** octets à partir de l'adresse **xxxx** dans un fichier. 
+* **xxxxL nom** permet de charger un fichier binaire en mémoire RAM à l'adresse **xxxx**.
 
 * **CTRL+D** Affiche le aliste des fichiers disponibles.
 
@@ -227,7 +245,8 @@ Par exemple pour sauvegarder le programme qu'on vient de créer à l'adresse 100
 ```
 #100S TICKS.BIN 8
 
-0100: A6operation completed
+0100: A6
+operation completed
 ```
 On fait **CTRL+D** pour s'assurer que le nouveau fichier est bien là.
 On va maintenant recharger ce programme mais à l'adresse 200 et l'exécuter. 
@@ -241,7 +260,8 @@ TICKS.BIN        8 bytes
 
 #200L TICKS.BIN
 
-0200: 00operation completed
+0200: 00
+operation completed
 
 #200R
 
